@@ -6,7 +6,7 @@ default_width: 30
 # Persist the URL state so browser refresh doesn't reset the UI
 persist_url_state: true
 
-tabs:
+# tabs:
   # OCP Console
   # - name: OCP Console
   #   url: 'https://console-openshift-console.${DOMAIN}'
@@ -25,5 +25,5 @@ tabs:
   #   secondary_port: 443
 
   # External page
-  - name: Llamastack Docs
-    url: 'https://llama-stack.readthedocs.io/en/latest/'
+  # - name: Llamastack Docs
+  #   url: 'https://llama-stack.readthedocs.io/en/latest/'
