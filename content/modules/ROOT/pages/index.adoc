@@ -58,16 +58,16 @@ To get started with the lab, please complete the following steps:
 .   **SSH into the Bastion Host**
     [source,bash]
     ----
-    ssh {bastion_ssh_user_name}@{bastion_public_hostname} -p {bastion_ssh_user_name}
-    Use password {bastion_ssh_password} when prompted.
+    ssh `{bastion_ssh_user_name}`@`{bastion_public_hostname}` -p `{bastion_ssh_port}`
+    Use password `{bastion_ssh_password}` when prompted.
     ----
 
 .   **Access OpenShift UI**
     [source,bash]
     ----
-    OpenShift Console available at: {openshift_console_url}
-    OpenShift Admin username: {openshift_cluster_admin_username}
-    OpenShift Admin password: {openshift_cluster_admin_password}
+    OpenShift Console available at: `{openshift_console_url}`
+    OpenShift Admin username: `{openshift_cluster_admin_username}`
+    OpenShift Admin password: `{openshift_cluster_admin_password}`
     ----    
 
 .   **Access OpenShift CLI**
