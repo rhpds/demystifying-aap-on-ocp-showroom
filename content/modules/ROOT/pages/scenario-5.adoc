@@ -13,23 +13,19 @@
 * Log in to the **AAP Gateway UI** successfully.
 * Navigate to the **Automation Hub** -> **Repositories** section.
 * Attempt to synchronize the built-in **"Community"** repository.
-* Diagnose and resolve the underlying issue(s) preventing successful synchronization.
+* Diagnose and resolve the two underlying issues preventing successful synchronization (resource limits and storage size).
 
 ---
 
 ### 💡 Hint
 
-* Synchronization failures are often related to the worker pods. Use standard Kubernetes tooling (`oc` or `kubectl`) to review the logs for the **Hub Content pods**. The error messages in the logs will reveal the cause.
+* Synchronization failures are often related to the worker pods. Use standard Kubernetes tooling (`oc` or `kubectl`) to review the logs for the **Hub Content pods**. Errors may point to **OOMKilled** (resource limits) or **disk quota exceeded** (storage size).
 
 ---
 
 ### 🛠️ Prerequisites: Setup and Break
 
-This section performs the initial setup and then injects a known failure into the environment for this scenario.
-
 #### 1. Initial Deployment
-
-Run the main playbook to deploy the required environment components (if not already done).
 
 [.instruction]
 ====
@@ -43,8 +39,6 @@ ansible-playbook site.yml -t deploy
 
 #### 2. Introduce Failure (Break)
 
-Execute the playbook to introduce the specific error for Scenario #5.
-
 [.instruction]
 ====
 Execute the following command, then select **Scenario 5** when prompted.
@@ -57,49 +51,35 @@ ansible-playbook site.yml -t break
 
 [NOTE]
 ====
-This `break` command injects a resource constraint issue that specifically impacts the large resource consumption required for repository synchronization in Automation Hub.
+This command injects a resource constraint issue (low memory limits) and a storage constraint issue (minimal PVC size) into the Hub's content workers.
 ====
 
 ---
 
 ### ✅ Steps to Resolution
 
-#### Step 1: Attempt Repository Sync
+#### Step 1: Attempt Repository Sync and Check Pod Logs
 
 [.instruction]
 ====
-Log into the AAP UI, navigate to **Automation Hub** -> **Repositories**, and initiate a sync job for the **"Community"** repository. Observe the resulting failure status.
-====
-
-#### Step 2: Inspect Content Pod Logs
-
-[.instruction]
-====
-Inspect the logs for the `hub-content` worker pods in your assigned namespace (`aap-rh1`).
+Initiate a sync job for the **"Community"** repository. Inspect the logs for the `hub-content` worker pods in your namespace for crash errors or disk-related messages.
 ====
 
 [source,bash]
 ----
-oc get pods -n aap-rh1
-# Identify the failing hub-content pod, then:
-oc logs -n aap-rh1 <hub-content-pod-name>
+oc logs -n aap-rh1 <failing-hub-content-pod-name>
 ----
 
-[.output]
-====
-The logs should show errors related to either resource constraints (OOMKilled) or filesystem/storage limitations during the sync process. This points to two separate configuration problems.
-====
-
-#### Step 3: Implement Fixes (Configuration and Storage)
-
-(Your solution steps go here, based on the diagnosis from Step 2.)
+#### Step 2: Implement Fixes (CR and PVC)
 
 [.instruction]
 ====
-Apply the necessary changes to the AAP Custom Resource (CR) and the relevant Persistent Volume Claim (PVC) to resolve the identified resource and storage limits.
+Apply the necessary changes:
+1. Increase the resource limits for `hub.content` in the AAP CR.
+2. Increase the size of the related PVC (and update the CR for future deployments).
 ====
 
-#### Step 4: Verify Resolution
+#### Step 3: Verify Resolution
 
 [.instruction]
 ====
@@ -108,5 +88,5 @@ After applying the fixes and allowing reconciliation, attempt to sync the **"Com
 
 [.output]
 ====
-A successful synchronization job confirms the scenario is complete. The logs for the content pods should no longer show resource or storage errors.
+A successful synchronization job confirms the scenario is complete.
 ====

@@ -1,33 +1,33 @@
-[#scenario-01,cols="3"]
-.Scenario #1: AAP Gateway Troubleshooting
+[#scenario-04,cols="3"]
+.Scenario #4: Scheduling and Resource Limit Failures
 |===
 | **Mode** | **Components** | **Namespace**
 
 | Easy
-| AAP Gateway UI
+| Database, API/Web
 | `aap-rh1`
 |===
 
 ### 📝 Objectives
 
-* Find out why the **AAP Gateway** pods are failing to start or run correctly.
-* Log in to the **AAP UI** to verify that the application is fully operational after remediation.
+* Log in to the **AAP Gateway UI** (if possible).
+* Observe multiple core components failing to deploy or stabilize.
+* Diagnose two distinct issues: a pod scheduling failure and a resource limit exhaustion.
+* Resolve both issues by modifying the AAP Custom Resource (CR).
 
 ---
 
 ### 💡 Hint
 
-* Use standard Kubernetes tooling (e.g., `oc` or `kubectl`) to inspect the state of the pods in the assigned namespace. Are there any pods in a non-`Running` or `Completed` state?
+* Use `oc describe pod <failing-pod-name>`:
+    * Look for **Events** related to scheduling problems (e.g., "0/X nodes are available: X node(s) didn't match node selector").
+    * Look for **Resource** sections to verify if the requested CPU/Memory is excessively high for the cluster capacity.
 
 ---
 
 ### 🛠️ Prerequisites: Setup and Break
 
-This section performs the initial setup and then injects a known failure into the environment for this scenario.
-
 #### 1. Initial Deployment
-
-Run the main playbook to deploy the required environment components (if not already done).
 
 [.instruction]
 ====
@@ -41,8 +41,6 @@ ansible-playbook site.yml -t deploy
 
 #### 2. Introduce Failure (Break)
 
-Execute the playbook to introduce the specific error for Scenario #1.
-
 [.instruction]
 ====
 Execute the following command, then select **Scenario 4** when prompted.
@@ -55,101 +53,61 @@ ansible-playbook site.yml -t break
 
 [NOTE]
 ====
-This `break` command simulates an issue that typically causes **Gateway pods** to fail health checks or crash. Your task is to use your existing knowledge to diagnose and fix the root cause.
+This break introduces an invalid `nodeSelector` for the database and oversized resource limits for the API pods.
 ====
 
 ---
 
 ### ✅ Steps to Resolution
 
-#### Step 1: Inspect Pod Status
+#### Step 1: Inspect Database Scheduling
 
 [.instruction]
 ====
-Inspect the status of the pods in your assigned namespace (`aap-rh1`). Look specifically for pods related to the AAP Gateway.
+Identify the failing Database pods and describe them to find the scheduling failure reason.
 ====
 
 [source,bash]
 ----
-# Example inspection command
-oc get pods -n aap-rh1
+oc get pods -n aap-rh1 | grep postgres
+oc describe pod <failing-postgres-pod> -n aap-rh1
 ----
 
 [.output]
 ====
-Identify any pods that show a status like `CrashLoopBackOff`, `Error`, or a readiness/liveness probe failure. Note the full name of the failing Gateway pod.
+The events should indicate a `nodeSelector` mismatch.
 ====
 
-[TIP]
-====
-If a pod is in a `CrashLoopBackOff` state, you need to check the logs to see what error is causing it to restart repeatedly.
-====
-
-#### Step 2: Examine Pod Logs
+#### Step 2: Inspect API Resource Limits
 
 [.instruction]
 ====
-View the logs for the failing Gateway pod to determine the specific cause of the crash or failure.
+Identify the failing API pods and describe them to review the requested resource requirements.
 ====
 
 [source,bash]
 ----
-oc logs -n aap-rh1 <failing-gateway-pod-name>
+oc get pods -n aap-rh1 | grep api
+oc describe pod <failing-api-pod> -n aap-rh1
 ----
 
 [.output]
 ====
-The logs should indicate a specific error related to configuration or resource access that prevents the service from starting correctly. This is your primary clue.
+The resource section will show requests/limits that exceed typical cluster capacity (e.g., 20Gi memory limit).
 ====
 
-#### Step 3: Implement the Fix
-
-(Your solution steps go here. These are typically environment-specific, e.g., editing a ConfigMap, fixing an image name in a Deployment, or adjusting a security context.)
+#### Step 3: Implement the Fixes
 
 [.instruction]
 ====
-Apply the necessary fix based on the logs you reviewed in Step 2.
+Modify the AAP Custom Resource (CR) to:
+1. Fix the database `nodeSelector` or remove it.
+2. Reduce the API resource requests/limits to manageable values.
 ====
 
-[source,bash]
-----
-# Example: Apply a fixed configuration file
-oc apply -f fixed-config.yaml -n aap-rh1
-----
-
-[NOTE]
-====
-Often, a fix will require the failing pod to be automatically restarted by the deployment or to be manually deleted (`oc delete pod <pod-name>`) to pick up the new, corrected configuration.
-====
-
-#### Step 4: Verify Resolution
+#### Step 4: Force Reconciliation and Verify
 
 [.instruction]
 ====
-Once the fix is applied, verify that the Gateway pods transition to a `Running` and ready state.
-====
-
-[source,bash]
-----
-oc get pods -n aap-rh1
-----
-
-[.output]
-====
-All Gateway-related pods should now show:
-
-* **STATUS:** `Running`
-* **READY:** `X/X` (e.g., `1/1`)
-====
-
-#### Step 5: Final UI Check
-
-[.instruction]
-====
-Log in to the **AAP UI** via the provided route/URL to ensure the application is fully accessible and functional.
-====
-
-[.output]
-====
-A successful login and ability to navigate the main dashboard confirms the scenario is complete.
+Delete the **Gateway Operator** manager pod to force a reconciliation of the changes, then monitor the pod statuses.
 ====

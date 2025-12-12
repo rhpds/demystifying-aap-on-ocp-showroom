@@ -1,73 +1,99 @@
-= Learning Lab Scenario 3: Gateway UI Failure
-:revdate: 2025-12-11
-
-[#scenario-3]
-== Scenario 3: Troubleshooting AAP Gateway UI
-
-[cols="1,3", options="header"]
+[#scenario-03,cols="3"]
+.Scenario #3: Database Service and Gateway Password
 |===
-| **MODE** | Easy
-| **Components** | Ansible Automation Platform (AAP) Gateway UI
-| **Namespace** | `aap-rh1`
+| **Mode** | **Components** | **Namespace**
+
+| Easy
+| Automation Controller, Gateway
+| `aap-rh1`
 |===
 
-### 🎯 Objectives
+### 📝 Objectives
 
-* Find out why the AAP Gateway API pods are failing to start or operate.
-* Log in to the AAP UI to verify that the fix was successful and the system is working again.
+* Log in to the **AAP Gateway UI** (if possible).
+* Observe connectivity failures, likely between the Controller/Web and the database.
+* Diagnose two separate issues: one impacting database access and one impacting Gateway login credentials.
+* Resolve both issues to restore full functionality.
 
 ---
 
-### 🚀 Initial Setup and Failure Injection
+### 💡 Hint
 
-Perform the following steps to deploy the environment and inject the deliberate break.
-
-.   **Deploy the Scenario**
-    Run the following command in your lab environment and select **Scenario 3** when prompted to set up the lab components.
-    [source,bash]
-    ----
-    ansible-playbook site.yml -t deploy
-    ----
-
-.   **Inject the Failure**
-    Run the following command to introduce the issue that prevents the Gateway UI from working correctly. Again, select **Scenario 3**.
-    [source,bash]
-    ----
-    ansible-playbook site.yml -t break
-    ----
+* Use `oc get all` and `oc describe` to look for missing or deleted objects that are crucial for service-to-service communication.
+* For authentication errors, investigate whether a sensitive resource (like a password or secret) has been changed outside of the standard operator lifecycle.
 
 ---
 
-### 🛠️ Troubleshooting Steps
+### 🛠️ Prerequisites: Setup and Break
 
-Follow these steps to diagnose and resolve the two issues in the scenario.
+#### 1. Initial Deployment
 
-#### **Issue 1: Pod Failure**
+[.instruction]
+====
+Execute the following command, then select **Scenario 3** when prompted.
+====
 
-.   **Diagnose the First Issue**
-    Examine the logs and status of the pods within the `aap-rh1` namespace to determine why the Gateway component is failing.
+[source,bash]
+----
+ansible-playbook site.yml -t deploy
+----
 
-TIP: **Hint 1: Database Connectivity**::
-Does the database have connection to the Gateway API pod? What OpenShift resource is needed for one pod to talk to another (e.g., NetworkPolicy or Service)?
+#### 2. Introduce Failure (Break)
 
-.   **Apply the First Fix**
-    Once you have identified the underlying cause of the first issue, run the fix playbook. Select **Scenario 3** when prompted.
-    [source,bash]
-    ----
-    ansible-playbook site.yml -t fix
-    ----
+[.instruction]
+====
+Execute the following command, then select **Scenario 3** when prompted.
+====
 
-#### **Issue 2: Login Failure**
+[source,bash]
+----
+ansible-playbook site.yml -t break
+----
 
-.   **Diagnose the Second Issue**
-    The pods should now be running, but you may encounter an issue when attempting to log in to the AAP UI. Check the logs of the **Gateway API pod** for clues related to authentication or access.
+[NOTE]
+====
+This break introduces a missing database service and a manipulated Gateway password.
+====
 
-TIP: **Hint 2: Networking and Authentication**::
-If you are having issues logging in, take a look at the Gateway API pod logs for clues about connectivity to the authentication service. It often relates to a missing or improperly configured networking resource.
+---
 
-.   **Apply the Second Fix and Verify**
-    Once you have identified the second issue, run the fix playbook again. Select **Scenario 3** when prompted, and then **verify that you can successfully log in** to the AAP Gateway UI.
-    [source,bash]
-    ----
-    ansible-playbook site.yml -t fix
-    ----
+### ✅ Steps to Resolution
+
+#### Step 1: Check Database Connectivity
+
+[.instruction]
+====
+Check the logs of the Automation Controller and Web pods for database connection errors. Then, check the existence of the expected database service.
+====
+
+[source,bash]
+----
+oc get svc -n aap-rh1
+----
+
+[.output]
+====
+If the database service is missing, you must recreate it using the exact specifications the operator expects, including required metadata like `ownerReferences`.
+====
+
+#### Step 2: Check Gateway Access
+
+[.instruction]
+====
+Attempt to log into the AAP Gateway UI. If authentication fails despite using the correct known credentials, assume the stored password has been corrupted or changed.
+====
+
+#### Step 3: Implement the Fixes
+
+[.instruction]
+====
+1. Recreate the missing database service object.
+2. Use the `aap-gateway-manage` utility from within the environment to reset the Gateway password.
+====
+
+#### Step 4: Verify Resolution
+
+[.instruction]
+====
+Verify all pods are running and ready, then successfully log into the AAP UI.
+====

@@ -8,15 +8,13 @@ This page provides the detailed solution for the issue presented in Scenario #6,
 
 ### Diagnosis
 
-One of the job templates was configured to use an **Execution Environment (EE)** image hosted in a private container registry (e.g., a Quay repository). When the Automation Controller attempted to launch the job, the underlying Kubernetes environment failed to pull the image because the job template did not have a corresponding **Container Registry Credential** assigned to it.
+One of the job templates was configured to use an **Execution Environment (EE)** image hosted in a private container registry (e.g., a Quay repository). The job failed because the necessary **Container Registry Credential** was not linked to the job template, resulting in an image pull failure.
 
-The error message in the `automation-job` pod logs would explicitly show an authentication error (`401 Unauthorized` or similar registry access denied message).
-
-
+The error message in the `automation-job` pod logs confirms the authentication failure.
 
 ### 🛠️ Resolution: Switching the Execution Environment
 
-The most straightforward fix in this scenario is to modify the failing job template to reference a publicly accessible Execution Environment image, or one that is already being used successfully by the other job templates in the environment.
+The solution is to modify the failing job template to reference an Execution Environment that is properly authenticated or publicly accessible.
 
 #### 1. Identify and Edit the Failing Job Template
 
@@ -29,37 +27,29 @@ Log in to the **Automation Controller UI** and navigate to the **Job Templates**
 
 [.instruction]
 ====
-Edit the configuration for the job template. Locate the **Execution Environment** setting.
+Edit the job template configuration and switch the **Execution Environment** field.
 ====
 
 [source]
 ----
-# Original (Failing) Configuration
-Execution Environment: Private EE from quay.io/<user>/private-ee:latest
-
-# Corrected Configuration
-Execution Environment: Default EE (or matching one used by successful templates)
+# The Fix:
+Switch the assigned Execution Environment to match the image being successfully used by the other job templates.
 ----
-
-[.instruction]
-====
-Switch the assigned Execution Environment to match the image being successfully used by the other job templates (or a known public/authenticated EE).
-====
 
 [NOTE]
 ====
-A more complex fix would involve creating and associating a **Container Registry Credential** with the project or organization that owns the job template. For this specific scenario, simply swapping the EE to a functional one is the intended solution.
+The failing template was likely using an EE from a private Quay repo without a matching credential. Switching it to a known good EE resolves the authentication gap.
 ====
 
 #### 3. Verification
 
 [.instruction]
 ====
-Save the job template configuration and launch the job again.
+Save the configuration and launch the job template again.
 ====
 
 [source]
 ----
 # Expected Result
-The job should transition from Pending to Running as the EE is successfully pulled and the automation begins.
+The job will successfully start, confirming the EE is now pulled correctly.
 ----

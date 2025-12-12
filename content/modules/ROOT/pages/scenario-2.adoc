@@ -1,68 +1,107 @@
-= Learning Lab Scenario 2: Automation Hub Deployment Failure
-:revdate: 2025-12-11
-
-[#scenario-2]
-== Scenario 2: Automation Hub Deployment Stuck
-
-[cols="1,3", options="header"]
+[#scenario-02,cols="3"]
+.Scenario #2: Automation Hub Storage Failure
 |===
-| **MODE** | Easy
-| **Components** | Ansible Automation Hub
-| **Namespace** | `scenario-2`
+| **Mode** | **Components** | **Namespace**
+
+| Easy
+| Automation Hub
+| `aap-rh1`
 |===
 
-### 🎯 Objective
+### 📝 Objectives
 
-* Find out why the Automation Hub deployment is stuck and fails to complete successfully.
+* Log in to the **AAP Gateway UI** successfully.
+* Verify the health of the **Automation Hub** pods.
+* Diagnose and resolve the underlying issue preventing the Hub from utilizing persistent storage.
+
+---
+
+### 💡 Hint
+
+* The failure is related to how the **Automation Hub** attempts to utilize storage. Review the pod events (`oc describe pod <failing-hub-pod>`) to see if there are errors related to binding a **Persistent Volume Claim (PVC)** or volume access mode.
+
+---
+
+### 🛠️ Prerequisites: Setup and Break
+
+#### 1. Initial Deployment
+
+Run the main playbook to deploy the required environment components.
+
+[.instruction]
+====
+Execute the following command, then select **Scenario 2** when prompted.
+====
+
+[source,bash]
+----
+ansible-playbook site.yml -t deploy
+----
+
+#### 2. Introduce Failure (Break)
+
+Execute the playbook to introduce the specific error for Scenario #2.
+
+[.instruction]
+====
+Execute the following command, then select **Scenario 2** when prompted.
+====
+
+[source,bash]
+----
+ansible-playbook site.yml -t break
+----
 
 [NOTE]
-.Important
-Focus your troubleshooting efforts on the **Hub Operator Logs** and the **Operator Pods**. The Automation Hub UI will not be available in this broken state.
+====
+This command sets the Hub's storage class to one that does *not* support the necessary ReadWriteMany access mode, which is required for HA Hub deployments.
+====
 
 ---
 
-### 🚀 Initial Setup and Failure Injection
+### ✅ Steps to Resolution
 
-Perform the following steps to deploy the environment and inject the deliberate break.
+#### Step 1: Inspect Pod and PVC Status
 
-.   **Deploy the Scenario**
-    Run the following command in your lab environment and select **Scenario 2** when prompted to set up the lab components.
-    [source,bash]
-    ----
-    ansible-playbook site.yml -t deploy
-    ----
+[.instruction]
+====
+Inspect the status of the Automation Hub pods and the Persistent Volume Claims (PVCs) in your namespace.
+====
 
-.   **Inject the Failure**
-    Run the following command to introduce the issue that prevents the Automation Hub from deploying correctly. Select **Scenario 2**.
-    [source,bash]
-    ----
-    ansible-playbook site.yml -t break
-    ----
+[source,bash]
+----
+oc get pods -n aap-rh1
+oc get pvc -n aap-rh1
+----
 
----
+[.output]
+====
+Identify any Hub pods in a `Pending` state. Use `oc describe` on the failing pod and the relevant PVC to identify the volume access mode conflict or provisioning error.
+====
 
-### 🛠️ Troubleshooting Steps
+#### Step 2: Implement the Fix
 
-Follow these steps to diagnose and resolve the issue.
+[.instruction]
+====
+Modify the main **AAP Custom Resource (CR)** to specify an RWX-compatible `storageClass` (e.g., `ocs-external-storagecluster-cephfs`). Then, manually clear the failed components to force reconciliation.
+====
 
-.   **Diagnose the Failure**
-    Begin by examining the resources in the `scenario-2` namespace. Look specifically at the logs and status of the Automation Hub Operator and the Hub API pods.
-    
-TIP: **Hint 1: Operator Logs**::
-Take a look at the `hub-operator-manager` logs. The errors here often point directly to the underlying resource failure.
+#### Step 3: Verify Resolution
 
-.   **Investigate Pod Status**
-    Check the status and logs of the `hub-api` pods. Are they stuck in a pending state, or are they repeatedly failing?
+[.instruction]
+====
+Monitor the namespace until the new PVC is bound and all Hub pods transition to a `Running` and ready state.
+====
 
-TIP: **Hint 2: Storage Check**::
-Review the errors seen within the `hub-api` pods. Is there storage defined and available for Hub?
+[source,bash]
+----
+oc get pods -n aap-rh1
+----
 
-.   **Apply the Fix (Once Identified)**
-    Once you have identified the missing or incorrect resource configuration, you can use the fix playbook to resolve the issue. Select **Scenario 2** when prompted.
-    [source,bash]
-    ----
-    ansible-playbook site.yml -t fix
-    ----
+[.output]
+====
+All Hub-related pods should now show:
 
-.   **Verify Deployment**
-    Wait for the Automation Hub pods to transition to a running state, and verify that the deployment finishes. You should be able to access the Automation Hub UI if the fix was successful.
+* **STATUS:** `Running`
+* **READY:** `X/X` (e.g., `1/1`)
+====
