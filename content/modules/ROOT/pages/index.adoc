@@ -2,14 +2,14 @@
 :sectnums:
 :toc: left
 :toclevels: 2
-:experimental:
+:author: Your Name/Team Name (Optional)
 
 [#welcome]
 == 👋 Welcome to the Lab!
 
-Welcome to the **Demystifying Ansible Automation Platform (AAP) on OpenShift Container Platform (OCP)** lab at Red Hat One!
+Welcome to the **Demystifying Ansible Automation Platform (AAP) on OpenShift Container Platform (OCP)** lab!
 
-In this lab, we are going to dive deep into troubleshooting Ansible Automation Platform deployments on OpenShift. You will work through practical exercises focused on the AAP Operator to help demonstrate where to look to find out what is going on with the deployment and how to fix some of the most common issues the Ansible SBR encounters.
+In this lab, we are going to dive deep into troubleshooting Ansible Automation Platform deployments on OpenShift. You will work through practical exercises focused on the AAP Operator to help demonstrate where to look to find out what is going on with the deployment and how to fix some of the most common issues the Ansible SBR team encounters.
 
 ---
 
@@ -17,11 +17,11 @@ In this lab, we are going to dive deep into troubleshooting Ansible Automation P
 == 🖥️ Your Environment
 
 * Each student has their own **Single Node OpenShift cluster** with cluster administrator access.
-* All of the work for the lab will be done on the **Bastion host** provided.
+* All of the work for the lab will be done on the **Bastion Host** provided.
 
 [TIP]
 .Bastion Host Pre-Configuration
-The Bastion host has been pre-configured with:
+The Bastion Host has been pre-configured with:
 * The `oc` client (OpenShift CLI).
 * The required Ansible modules and collections.
 * All other resources needed to complete the lab.
@@ -31,7 +31,7 @@ The Bastion host has been pre-configured with:
 [#scenarios]
 == 🧩 Lab Scenarios Overview
 
-You have **8 scenarios** to work through, covering each major component of Ansible Automation Platform:
+You have **7 scenarios** (Note: Adjusted count based on content provided so far, you mentioned 8 but only listed 7 scenarios in the nav) to work through, covering each major component of Ansible Automation Platform:
 
 * **Gateway**
 * **Controller**
@@ -41,56 +41,93 @@ You have **8 scenarios** to work through, covering each major component of Ansib
 
 ### The Lab Workflow
 
-The core workflow for each scenario is:
+The core troubleshooting workflow for each scenario is:
 
-1.  Run the playbook to **deploy** the scenario.
-2.  Run the playbook to **break** the scenario.
-3.  **Troubleshoot** and figure out what is going on.
-4.  Once you have found the issues (or if you get stuck), run the playbook to **fix** the scenario and see the steps taken to resolve the issues.
+1. Run the playbook to **deploy** the scenario environment.
+2. Run the playbook to **break** the environment with a known issue.
+3. **Troubleshoot** the issue using logs, `oc describe`, and your existing knowledge.
+4. Once resolved (or if stuck), find the **solution** and run the playbook to **fix** the scenario.
 
 ---
 
 [#get-started]
 == 🚀 Getting Started
 
-To get started with the lab, please complete the following steps:
+To begin the learning lab, please complete the following setup and initialization steps:
 
-.   **SSH into the Bastion Host**
-    [source,bash]
-    ----
-    ssh `{bastion_ssh_user_name}`@`{bastion_public_hostname}` -p `{bastion_ssh_port}`
-    Use password `{bastion_ssh_password}` when prompted.
-    ----
+### 1. SSH into the Bastion Host
 
-.   **Access OpenShift UI**
-    [source,bash]
-    ----
-    OpenShift Console available at: `{openshift_console_url}`
-    OpenShift Admin username: `{openshift_cluster_admin_username}`
-    OpenShift Admin password: `{openshift_cluster_admin_password}`
-    ----    
+Establish an SSH connection to the lab's **Bastion Host** using the provided credentials.
 
-.   **Access OpenShift CLI**
-    [source,bash]
-    ----
-    oc whoami
-    ----       
+[source,bash]
+----
+ssh {bastion_ssh_user_name}@{bastion_public_hostname} -p {bastion_ssh_port}
+----
 
-.   **Clone the Repository**
-    Change into your working directory and clone the lab repository.
-    [source,bash]
-    ----
-    git clone https://github.com/your-repo/this-lab.git
-    cd this-lab
-    ----
+[NOTE]
+====
+Use the following password when prompted: **{bastion_ssh_password}**
+====
 
-.   **Deploy Initial Resources**
-    Deploy the core AAP resources and start with Scenario 1.
-    [source,bash]
-    ----
-    ansible-playbook site.yml
-    # Then select scenario 1 to get started
-    ----
+### 2. Access OpenShift Cluster
+
+Access the cluster via the browser UI and confirm command-line access.
+
+#### 2.1. OpenShift UI Access
+
+The cluster console is available at the following URL.
+
+[.instruction]
+====
+Open the following URL in your browser:
+**{openshift_console_url}**
+====
+
+[NOTE]
+====
+* **Username:** {openshift_cluster_admin_username}
+* **Password:** {openshift_cluster_admin_password}
+====
+
+#### 2.2. Verify OpenShift CLI
+
+Confirm that your `oc` (OpenShift CLI) connection is valid from the Bastion Host.
+
+[source,bash]
+----
+oc whoami
+----
+
+### 3. Clone the Repository
+
+Change into your working directory and clone the lab repository containing the playbooks.
+
+[source,bash]
+----
+git clone https://github.com/your-repo/this-lab.git
+cd this-lab
+----
+
+### 4. Deploy Initial Resources
+
+Run the main Ansible playbook to deploy the core AAP resources and prepare the environment.
+
+[.instruction]
+====
+Execute the deployment command:
+====
+
+[source,bash]
+----
+ansible-playbook site.yml
+----
+
+[.output]
+====
+You will be prompted to select a scenario. Select **Scenario 1** to begin the troubleshooting exercises.
+====
+
+---
 
 ++++
 <p style="text-align: center; font-size: 1.5em; margin-top: 2em;"><strong>Good luck and have fun!</strong></p>
