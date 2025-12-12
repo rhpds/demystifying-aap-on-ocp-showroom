@@ -1,22 +1,22 @@
 = Learning Lab Navigation
 
-* xref:scenario-1.adoc[1. Scenario #1: AAP Gateway Troubleshooting]
-** xref:scenario-1-solution.adoc[1.1. Solution: Gateway Troubleshooting]
+* xref:scenario-1.adoc[Scenario #1: AAP Gateway Troubleshooting]
+** xref:scenario-1-solution.adoc[Scenario #1 Solution: Gateway Troubleshooting]
 
-* xref:scenario-2.adoc[2. Scenario #2: Automation Hub Storage]
-** xref:scenario-2-solution.adoc[2.1. Solution: Automation Hub Storage]
+* xref:scenario-2.adoc[Scenario #2: Automation Hub Issues]
+** xref:scenario-2-solution.adoc[Scenario #2Solution: Automation Hub Issues]
 
-* xref:scenario-3.adoc[3. Scenario #3: Database/Gateway Issues]
-** xref:scenario-3-solution.adoc[3.1. Solution: Database/Gateway Issues]
+* xref:scenario-3.adoc[Scenario #3: Gateway Issues]
+** xref:scenario-3-solution.adoc[Scenario #3 Solution: Gateway Issues]
 
-* xref:scenario-4.adoc[4. Scenario #4: Scheduling/Resource Limits]
-** xref:scenario-4-solution.adoc[4.1. Solution: Solution: Scheduling/Resource Limits]
+* xref:scenario-4.adoc[Scenario #4: Gateway Issues]
+** xref:scenario-4-solution.adoc[Scenario #4 Solution: Gateway Issues]
 
-* xref:scenario-5.adoc[5. Scenario #5: Automation Hub Sync Failures]
-** xref:scenario-5-solution.adoc[5.1. Solution: Automation Hub Sync Failures]
+* xref:scenario-5.adoc[Scenario #5: Automation Hub Issues]
+** xref:scenario-5-solution.adoc[Scenario #5 Solution: Automation Hub Issues]
 
-* xref:scenario-6.adoc[6. Scenario #6: Automation Controller EE]
-** xref:scenario-6-solution.adoc[6.1. Solution: Automation Controller EE]
+* xref:scenario-6.adoc[Scenario #6: Automation Controller Issues]
+** xref:scenario-6-solution.adoc[Scenario #6 Solution: Automation Controller Issues]
 
-* xref:scenario-7.adoc[7. Scenario #7: Lightspeed Configuration]
-** xref:scenario-7-solution.adoc[7.1. Solution: Lightspeed Configuration]
+* xref:scenario-7.adoc[Scenario #7: Lightspeed Issues]
+** xref:scenario-7-solution.adoc[Scenario #7 Solution: Lightspeed Issues]
