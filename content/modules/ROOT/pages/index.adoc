@@ -1,43 +1,84 @@
-= {lab_name}
+= Demystifying Ansible Automation Platform on OpenShift Container Platform Lab
+:sectnums:
+:toc: left
+:toclevels: 2
+:experimental:
 
-The `lab_name` var, known as an asciidoc attribute, above was set in `./content/antora.yml` and can be used to set the lab_name or title of your content.
-You are both free to change its value and if you prefer to use a different var name, you can change the value of `lab_name`, for example to `title` in `./content/antora.yml` and then reference it in your content as `\{title}`. +
+[#welcome]
+== 👋 Welcome to the Lab!
 
-image::rhel-logo-black.jpg[rhel-logo-black,55%,55%]
+Welcome to the **Demystifying Ansible Automation Platform (AAP) on OpenShift Container Platform (OCP)** lab at Red Hat One!
 
-== Variables
+In this lab, we are going to dive deep into troubleshooting Ansible Automation Platform deployments on OpenShift. You will work through practical exercises focused on the AAP Operator to help demonstrate where to look to find out what is going on with the deployment and how to fix some of the most common issues the Ansible Service Broker (SBR) encounters.
 
-Other vars can also be set there, such as `ssh_user` and `ssh_password`, and referenced inline in the lab content by using the `\{foo}` syntax.
+---
 
-This is another var, or asciidoc attribute, from `./content/antora.yml` {my_var}
+[#environment]
+== 🖥️ Your Environment
 
-== Writing your lab
+* Each student has their own **Single Node OpenShift cluster** with cluster administrator access.
+* All of the work for the lab will be done on the **Bastion host** provided.
 
-Whatever type of content you are writing we'll refer to your *content* as "your lab" in this document.
+[TIP]
+.Bastion Host Pre-Configuration
+The Bastion host has been pre-configured with:
+* The `oc` client (OpenShift CLI).
+* The required Ansible modules and collections.
+* All other resources needed to complete the lab.
 
-=== Lab structure
+---
 
-Wether you are writing a lab
+[#scenarios]
+== 🧩 Lab Scenarios Overview
 
-* First, we will build a monolithic application already compiled as RPM packages and put it into a container. This will allow us to deploy the application, copy it between machines, and update it separately from the operating system. This process affords us a portable and easily maintained component instead of tightly coupling the application with your operating system maintenance.
+You have **8 scenarios** to work through, covering each major component of Ansible Automation Platform:
 
-* In closing we will build a second container on a different operating system version that makes an application not packaged into RPMs. This will be similar to a web application deployment, positioning the correct files at the right locations. To do this, we will pull a project from GitHub and position the component files within our container image. The purpose of this is to achieve a portable application container that can deploy on several different versions of Red Hat Enterprise Linux. This also provides the benefit of decoupling your application maintenance, which would all happen by building new containers versus operating system maintenance. The container is no longer reliant on the operating system installed on the machine where the application is deployed.
+* **Gateway**
+* **Controller**
+* **Automation Hub**
+* **Event-Driven Ansible (EDA)**
+* **Ansible Lightspeed Intelligent Assistant (ALIA)**
 
-. Now let's examine this cluster a bit more by describing the cluster (the `$GUID` environment variable is already set for you so you can immediately describe your individual cluster):
-+
-[source,sh,role=execute]
-----
-podman ps
-----
-+
-.Sample Output
-[source,texinfo,subs="attributes"]
-----
-CONTAINER ID  IMAGE                        COMMAND           CREATED      STATUS      PORTS                 NAMES
-2dcfee9e50c4  docker.io/library/httpd:2.4  httpd-foreground  3 hours ago  Up 3 hours  0.0.0.0:8080->80/tcp  showroom-httpd
-----
+### The Lab Workflow
 
-=== Lab Access
+The core workflow for each scenario is:
 
-The terminal window to your right is *already* logged into the lab environment as the `{ssh_user}` user via `ssh`.
-All steps of this lab are to be completed as the `{ssh_user}` user.
+1.  Run the playbook to **deploy** the scenario.
+2.  Run the playbook to **break** the scenario.
+3.  **Troubleshoot** and figure out what is going on.
+4.  Once you have found the issues (or if you get stuck), run the playbook to **fix** the scenario and see the steps taken to resolve the issues.
+
+---
+
+[#get-started]
+== 🚀 Getting Started
+
+To get started with the lab, please complete the following steps:
+
+.   **SSH into the Bastion Host**
+    (Insert specific SSH steps here, e.g., using a provided IP and key)
+    [source,bash]
+    ----
+    # Replace <IP> and <KEY> with your credentials
+    ssh -i ~/.ssh/<KEY>.pem user@<IP_ADDRESS>
+    ----
+
+.   **Clone the Repository**
+    Change into your working directory and clone the lab repository.
+    [source,bash]
+    ----
+    git clone https://github.com/your-repo/this-lab.git
+    cd this-lab
+    ----
+
+.   **Deploy Initial Resources**
+    Deploy the core AAP resources and start with Scenario 1.
+    [source,bash]
+    ----
+    ansible-playbook site.yml
+    # Then select scenario 1 to get started
+    ----
+
+++++
+<p style="text-align: center; font-size: 1.5em; margin-top: 2em;"><strong>Good luck and have fun!</strong></p>
+++++
