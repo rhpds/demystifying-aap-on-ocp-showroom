@@ -1,6 +1,5 @@
 = Learning Lab Scenario 2: Automation Hub Deployment Failure
 :revdate: 2025-12-11
-:experimental:
 
 [#scenario-2]
 == Scenario 2: Automation Hub Deployment Stuck
@@ -49,22 +48,14 @@ Follow these steps to diagnose and resolve the issue.
 .   **Diagnose the Failure**
     Begin by examining the resources in the `scenario-2` namespace. Look specifically at the logs and status of the Automation Hub Operator and the Hub API pods.
     
-    [NOTE]
-    .Need a Hint? Click to reveal a clue.
-    [details,summary="Hint 1: Operator Logs"]
-    ----
-    Take a look at the `hub-operator-manager` logs. The errors here often point directly to the underlying resource failure.
-    ----
+TIP: **Hint 1: Operator Logs**::
+Take a look at the `hub-operator-manager` logs. The errors here often point directly to the underlying resource failure.
 
 .   **Investigate Pod Status**
     Check the status and logs of the `hub-api` pods. Are they stuck in a pending state, or are they repeatedly failing?
-    
-    [CAUTION]
-    .Need a Deeper Clue? Click to reveal the critical component.
-    [details,summary="Hint 2: Missing Resource"]
-    ----
-    Review the errors seen within the `hub-api` pods. Do these logs indicate a failure to mount a necessary resource? Is there adequate storage defined and available for Automation Hub?
-    ----
+
+TIP: **Hint 2: Storage Check**::
+Review the errors seen within the `hub-api` pods. Is there storage defined and available for Hub?
 
 .   **Apply the Fix (Once Identified)**
     Once you have identified the missing or incorrect resource configuration, you can use the fix playbook to resolve the issue. Select **Scenario 2** when prompted.
@@ -74,4 +65,4 @@ Follow these steps to diagnose and resolve the issue.
     ----
 
 .   **Verify Deployment**
-    Wait for the Automation Hub pods to transition to a running state, and verify that the deployment finishes.
+    Wait for the Automation Hub pods to transition to a running state, and verify that the deployment finishes. You should be able to access the Automation Hub UI if the fix was successful.

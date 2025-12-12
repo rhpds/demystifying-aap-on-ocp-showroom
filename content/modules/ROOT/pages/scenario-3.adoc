@@ -1,6 +1,5 @@
 = Learning Lab Scenario 3: Gateway UI Failure
 :revdate: 2025-12-11
-:experimental:
 
 [#scenario-3]
 == Scenario 3: Troubleshooting AAP Gateway UI
@@ -48,12 +47,8 @@ Follow these steps to diagnose and resolve the two issues in the scenario.
 .   **Diagnose the First Issue**
     Examine the logs and status of the pods within the `aap-rh1` namespace to determine why the Gateway component is failing.
 
-[NOTE]
-.Need a Hint? Click to reveal a clue.
-[details,summary="Hint 1: Database Connectivity"]
-----
-Does the Gateway API pod have a connection to the database? Check to see if there is any network policy preventing the two from communicating.
-----
+TIP: **Hint 1: Database Connectivity**::
+Does the database have connection to the Gateway API pod? What OpenShift resource is needed for one pod to talk to another (e.g., NetworkPolicy or Service)?
 
 .   **Apply the First Fix**
     Once you have identified the underlying cause of the first issue, run the fix playbook. Select **Scenario 3** when prompted.
@@ -67,19 +62,8 @@ Does the Gateway API pod have a connection to the database? Check to see if ther
 .   **Diagnose the Second Issue**
     The pods should now be running, but you may encounter an issue when attempting to log in to the AAP UI. Check the logs of the **Gateway API pod** for clues related to authentication or access.
 
-[NOTE]
-.Need a Hint? Click to reveal a clue.
-[details,summary="Hint 2: Networking Resource"]
-----
-What OpenShift resource is needed for one pod to talk to another? Specifically, check if the Gateway API pod is able to reach the authentication service.
-----
-
-[CAUTION]
-.Need Another Hint? Click to reveal a second clue.
-[details,summary="Hint 3: Logs"]
-----
-Having issues logging in? Take a look at the Gateway API pod logs for clues like "failed to reach authentication service" or similar connection errors.
-----
+TIP: **Hint 2: Networking and Authentication**::
+If you are having issues logging in, take a look at the Gateway API pod logs for clues about connectivity to the authentication service. It often relates to a missing or improperly configured networking resource.
 
 .   **Apply the Second Fix and Verify**
     Once you have identified the second issue, run the fix playbook again. Select **Scenario 3** when prompted, and then **verify that you can successfully log in** to the AAP Gateway UI.
