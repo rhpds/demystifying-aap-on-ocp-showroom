@@ -1,0 +1,119 @@
+= 💡 Scenario #3: Solutions and Resolution
+
+This page provides the detailed solutions for the issues presented in Scenario #3. Review these steps after you have attempted the diagnosis and resolution yourself.
+
+---
+
+## 🛑 Problem 1: Missing Database Service
+
+### Diagnosis
+The core issue was that the Kubernetes **Service** object for the PostgreSQL database (`<scenario-name>-aap-postgres-15`) was missing. Without a service, other components, like the AAP Controller and Web, cannot resolve or connect to the database pods, even if the pods are running.
+
+### 🛠️ Resolution
+
+The fix requires recreating the Kubernetes Service object. Because the Ansible Automation Platform (AAP) Operator manages the cluster, the Service must contain specific metadata (like `ownerReferences`) to prevent the Operator from immediately deleting it as an "unmanaged" resource.
+
+#### 1. Define the Missing Service
+
+Create a YAML file (e.g., `postgres-service-fix.yaml`) with the following definition. **Note:** You must replace the placeholders (e.g., `{{ _scenario_name }}` and `{{ namespace }}`) with the actual values used in your environment.
+
+[source,yaml]
+----
+api_version: v1
+kind: Service
+name: "{{ _scenario_name }}-aap-postgres-15"
+namespace: "{{ namespace }}" 
+state: present
+definition:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: "{{ _scenario_name }}-aap-postgres-15"
+    namespace: "{{ namespace }}" 
+    ownerReferences:
+      - apiVersion: aap.ansible.com/v1alpha1
+        kind: AnsibleAutomationPlatform
+        name: "{{ _scenario_name }}-aap"
+        uid: "{{ aap_cr_info.resources[0].metadata.uid }}"
+    labels:
+      app.kubernetes.io/component: database
+      app.kubernetes.io/instance: "postgres-15-{{ _scenario_name }}-aap"
+      app.kubernetes.io/managed-by: aap-gateway-operator
+      app.kubernetes.io/name: postgres-15
+  spec:
+    clusterIP: None
+    ipFamilies:
+      - IPv4
+    ports:
+      - name: '5432'
+        protocol: TCP
+        port: 5432
+        targetPort: 5432
+    internalTrafficPolicy: Cluster
+    clusterIPs:
+      - None
+    type: ClusterIP
+    ipFamilyPolicy: SingleStack
+    sessionAffinity: None
+    selector:
+      app.kubernetes.io/component: database
+      app.kubernetes.io/instance: "postgres-15-{{ _scenario_name }}-aap"
+      app.kubernetes.io/managed-by: aap-gateway-operator
+      app.kubernetes.io/name: postgres-15
+----
+
+#### 2. Apply the Service Definition
+
+Use `oc` or `kubectl` to apply the YAML file to the namespace.
+
+[source,bash]
+----
+oc apply -f postgres-service-fix.yaml -n {{ namespace }}
+----
+
+#### 3. Verification
+
+Wait for the application components (Controller, Web) to automatically re-establish connections now that the database service is available. Monitor the pod statuses.
+
+[source,bash]
+----
+oc get pods -n {{ namespace }}
+# All pods should return to a 'Running' and 'Ready' state.
+----
+
+---
+
+## 🛑 Problem 2: Incorrect Gateway Password
+
+### Diagnosis
+The second issue was an incorrect password set for the internal **AAP Gateway** administration user (often `admin`). This prevents authentication or successful handshakes between the Gateway and other AAP components.
+
+### 🛠️ Resolution
+
+The solution is to use the dedicated `aap-gateway-manage` utility provided within the environment to reset the password back to the value defined in the Ansible Automation Platform Custom Resource (CR).
+
+#### 1. Execute the Management Command
+
+Run the `aap-gateway-manage update_password` command from a location that can execute utilities against the running environment (e.g., within an execution environment or from the deployment host).
+
+[source,bash]
+----
+aap-gateway-manage update_password --username admin --password
+----
+
+[NOTE]
+====
+The command shown above will automatically set the `admin` user's password to the value specified in the active AAP Custom Resource (CR). If successful, this resolves any authentication failures related to the Gateway password mismatch.
+====
+
+#### 2. Final Verification
+
+Once both fixes are applied, the entire AAP platform should stabilize. Verify the functionality by:
+
+1.  Checking that all pod statuses are `Running` and `Ready`.
+2.  Attempting to log in to the main AAP UI via the route/URL.
+
+[source,bash]
+----
+oc get pods -n {{ namespace }}
+----

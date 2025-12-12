@@ -1,0 +1,116 @@
+[#scenario-06,cols="3"]
+.Scenario #6: Automation Controller Job Template Failure
+|===
+| **Mode** | **Components** | **Namespace**
+
+| Easy
+| Automation Controller
+| `aap-rh1`
+|===
+
+### 📝 Objectives
+
+* Log in to the **AAP Gateway UI** successfully.
+* Navigate to the **Automation Execution (Automation Controller)** -> **Job Templates** section.
+* Attempt to launch the four available job templates.
+* Identify which job template(s) fail and diagnose the root cause.
+* Resolve the underlying issue(s).
+
+---
+
+### 💡 Hint
+
+* The failure occurs when the Automation Controller attempts to use the **Execution Environment (EE)**. Review the logs for the specific **automation-job** pod that corresponds to the failed job template execution. The logs will indicate why the EE could not be pulled.
+
+---
+
+### 🛠️ Prerequisites: Setup and Break
+
+This section performs the initial setup and then injects a known failure into the environment for this scenario.
+
+#### 1. Initial Deployment
+
+Run the main playbook to deploy the required environment components (if not already done).
+
+[.instruction]
+====
+Execute the following command, then select **Scenario 6** when prompted.
+====
+
+[source,bash]
+----
+ansible-playbook site.yml -t deploy
+----
+
+#### 2. Introduce Failure (Break)
+
+Execute the playbook to introduce the specific error for Scenario #6.
+
+[.instruction]
+====
+Execute the following command, then select **Scenario 6** when prompted.
+====
+
+[source,bash]
+----
+ansible-playbook site.yml -t break
+----
+
+[NOTE]
+====
+This `break` command modifies one of the job templates to reference an Execution Environment that requires authentication to pull.
+====
+
+---
+
+### ✅ Steps to Resolution
+
+#### Step 1: Launch Job Templates
+
+[.instruction]
+====
+In the Automation Controller UI, launch all four job templates and identify the one that immediately fails or remains stuck in a resource-provisioning state.
+====
+
+#### Step 2: Inspect Job Pod Logs
+
+[.instruction]
+====
+Find the specific **automation-job** pod associated with the failed job template execution and view its logs in the assigned namespace (`aap-rh1`).
+====
+
+[source,bash]
+----
+oc get pods -n aap-rh1
+# Identify the failed job pod, then:
+oc logs -n aap-rh1 <automation-job-pod-name>
+----
+
+[.output]
+====
+The logs will show an error message similar to a `401 Unauthorized` or a general pull failure when attempting to fetch the container image for the Execution Environment.
+====
+
+#### Step 3: Implement the Fix
+
+[.instruction]
+====
+Based on the logs, correct the configuration of the failing job template within the Automation Controller UI.
+====
+
+[TIP]
+====
+The fix involves editing the failing job template to use an Execution Environment that is either publicly accessible or has the necessary **Container Registry Credential** already linked to the project or organization.
+====
+
+#### Step 4: Verify Resolution
+
+[.instruction]
+====
+Launch the previously failing job template again.
+====
+
+[.output]
+====
+The job should now successfully pull the Execution Environment image and transition to a `Running` state, confirming the resolution.
+====

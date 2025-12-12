@@ -1,0 +1,117 @@
+[#scenario-07,cols="3"]
+.Scenario #7: Ansible Lightspeed Intelligent Assistant (ALIA) Failure
+|===
+| **Mode** | **Components** | **Namespace**
+
+| Easy
+| Ansible Lightspeed Intelligent Assistant (ALIA)
+| `aap-rh1`
+|===
+
+### 📝 Objectives
+
+* Log in to the **AAP Gateway UI** successfully.
+* Observe that the **Ansible Lightspeed Intelligent Assistant (ALIA)** chat icon is missing from the top right of the interface.
+* Diagnose the underlying issue preventing the ALIA UI component from activating.
+* Resolve the issue(s).
+
+---
+
+### 💡 Hint
+
+* The ALIA service relies on a correct configuration to connect to the underlying Large Language Model (LLM). Review the logs for the `lightspeed-api` and `chatbot` pods to identify connection or authentication errors.
+* **Crucial:** Model names and required access information (e.g., the correct token) are typically provided on the **Lab Resource Page**. Ensure the current configuration uses a model that is authorized and available.
+
+---
+
+### 🛠️ Prerequisites: Setup and Break
+
+This section performs the initial setup and then injects a known failure into the environment for this scenario.
+
+#### 1. Initial Deployment
+
+Run the main playbook to deploy the required environment components (if not already done).
+
+[.instruction]
+====
+Execute the following command, then select **Scenario 7** when prompted.
+====
+
+[source,bash]
+----
+ansible-playbook site.yml -t deploy
+----
+
+#### 2. Introduce Failure (Break)
+
+Execute the playbook to introduce the specific error for Scenario #7. **Note:** You must provide the correct token via an environment variable as part of the break script.
+
+[.instruction]
+====
+Execute the following command, ensuring you replace the placeholder with the correct token value from your Lab Resource Page. Select **Scenario 7** when prompted.
+====
+
+[source,bash]
+----
+ansible-playbook site.yml -t break -e chatbot_token='token_value_from_resource_page'
+----
+
+[NOTE]
+====
+This `break` command injects a configuration error into the Lightspeed setup, typically by pointing the service to an unauthorized or non-existent AI model.
+====
+
+---
+
+### ✅ Steps to Resolution
+
+#### Step 1: Inspect Pod Logs
+
+[.instruction]
+====
+Inspect the logs for the `lightspeed-api` and `chatbot` pods in your assigned namespace (`aap-rh1`).
+====
+
+[source,bash]
+----
+oc get pods -n aap-rh1
+# Check logs for both:
+oc logs -n aap-rh1 <lightspeed-api-pod-name>
+oc logs -n aap-rh1 <chatbot-pod-name>
+----
+
+[.output]
+====
+The logs will show connection errors, access denied messages, or references to an invalid model configuration, specifically noting the name of the model the service is attempting to use.
+====
+
+#### Step 2: Implement the Configuration Fix
+
+[.instruction]
+====
+Based on the logs and the allowed model names from your Lab Resource Page, identify the incorrect model name in the configuration secret.
+====
+
+[TIP]
+====
+The model name configuration is typically stored within a Kubernetes **Secret** object associated with the chatbot service.
+====
+
+#### Step 3: Force Reconciliation
+
+[.instruction]
+====
+After updating the secret, manually delete the relevant Operator pod to force the service to reload the corrected configuration.
+====
+
+#### Step 4: Verify Resolution
+
+[.instruction]
+====
+Check the AAP Gateway UI again.
+====
+
+[.output]
+====
+The **Ansible Lightspeed Intelligent Assistant** chat icon should now be visible in the top right corner, and the service should respond to basic queries.
+====

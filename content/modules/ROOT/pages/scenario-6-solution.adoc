@@ -1,0 +1,65 @@
+= 💡 Scenario #6: Solutions and Resolution
+
+This page provides the detailed solution for the issue presented in Scenario #6, which involves an Execution Environment image pull failure due to authentication issues.
+
+---
+
+## 🛑 Problem: Missing Execution Environment Credential
+
+### Diagnosis
+
+One of the job templates was configured to use an **Execution Environment (EE)** image hosted in a private container registry (e.g., a Quay repository). When the Automation Controller attempted to launch the job, the underlying Kubernetes environment failed to pull the image because the job template did not have a corresponding **Container Registry Credential** assigned to it.
+
+The error message in the `automation-job` pod logs would explicitly show an authentication error (`401 Unauthorized` or similar registry access denied message).
+
+
+
+### 🛠️ Resolution: Switching the Execution Environment
+
+The most straightforward fix in this scenario is to modify the failing job template to reference a publicly accessible Execution Environment image, or one that is already being used successfully by the other job templates in the environment.
+
+#### 1. Identify and Edit the Failing Job Template
+
+[.instruction]
+====
+Log in to the **Automation Controller UI** and navigate to the **Job Templates**. Select the template that failed execution.
+====
+
+#### 2. Change the Execution Environment
+
+[.instruction]
+====
+Edit the configuration for the job template. Locate the **Execution Environment** setting.
+====
+
+[source]
+----
+# Original (Failing) Configuration
+Execution Environment: Private EE from quay.io/<user>/private-ee:latest
+
+# Corrected Configuration
+Execution Environment: Default EE (or matching one used by successful templates)
+----
+
+[.instruction]
+====
+Switch the assigned Execution Environment to match the image being successfully used by the other job templates (or a known public/authenticated EE).
+====
+
+[NOTE]
+====
+A more complex fix would involve creating and associating a **Container Registry Credential** with the project or organization that owns the job template. For this specific scenario, simply swapping the EE to a functional one is the intended solution.
+====
+
+#### 3. Verification
+
+[.instruction]
+====
+Save the job template configuration and launch the job again.
+====
+
+[source]
+----
+# Expected Result
+The job should transition from Pending to Running as the EE is successfully pulled and the automation begins.
+----

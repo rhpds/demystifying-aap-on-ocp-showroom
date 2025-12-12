@@ -1,0 +1,106 @@
+= 💡 Scenario #5: Solutions and Resolution
+
+This page provides the detailed solutions for the issues presented in Scenario #5, specifically resource and storage constraints during Automation Hub synchronization.
+
+---
+
+## 🛑 Problem 1: Insufficient Resource Limits for Content Pods
+
+### Diagnosis
+
+Attempting to sync a large repository like "Community" requires significant temporary CPU and memory resources for content processing. The **Automation Hub Content** worker pods were likely being terminated (e.g., `OOMKilled`) because the defined resource limits were too low to handle the synchronization workload.
+
+### 🛠️ Resolution: Increasing Content Resource Limits
+
+The fix is to increase the resource requests and limits for the **Hub Content** workers directly in the main **Ansible Automation Platform Custom Resource (CR)**.
+
+#### 1. Update the AAP Custom Resource
+
+Modify the `spec.hub.content.resource_requirements` section of the CR to allocate more resources.
+
+[.instruction]
+====
+Edit the AAP CR to increase the `limits` substantially to accommodate the content sync process.
+====
+
+[source,yaml]
+----
+# Example snippet of the modified AAP CR
+spec:
+  hub:
+    content:
+      resource_requirements:
+        limits:
+          cpu: 1000m  # 1 CPU core (Increased)
+          memory: 8Gi # 8 Gigabytes (Significantly Increased)
+        requests:
+          cpu: 100m   # 100 millicores (Example baseline)
+          memory: 200Mi # 200 Mebibytes (Example baseline)
+----
+
+[NOTE]
+====
+A large memory limit (e.g., `8Gi`) is often required for large content imports, although the actual requests can remain low to facilitate scheduling. 
+====
+
+---
+
+## 🛑 Problem 2: Insufficient Persistent Volume Claim (PVC) Size
+
+### Diagnosis
+
+Synchronization failed because the Persistent Volume Claim (PVC) used for storing the actual file content of the Hub repositories was too small. The initial size was likely set to a minimal value (e.g., `25Mi`), which is not enough to hold the Community repository's contents.
+
+### 🛠️ Resolution: Increasing PVC Storage Size
+
+The fix involves increasing the requested storage size, both within the CR (to affect future provisioning) and directly on the existing PVC.
+
+#### 1. Update the AAP Custom Resource (Optional but Recommended)
+
+Update the CR to ensure future PVCs use the correct size.
+
+[.instruction]
+====
+Set the desired size in the CR's `hub_file_storage_size` field (assuming your CR uses this field or similar).
+====
+
+[source,yaml]
+----
+# Example snippet of the modified AAP CR
+spec:
+  automationhub:
+    hub_file_storage_size: 10Gi # Increase this value
+----
+
+#### 2. Manually Patch the Existing PVC
+
+The storage size of the *existing* PVC must be increased directly. **Note:** This requires the StorageClass to support volume expansion.
+
+[.instruction]
+====
+Identify the existing Hub PVC (`data-automation-hub`) and patch its size to a larger value, such as `10Gi`.
+====
+
+[source,yaml]
+----
+# Patching the PVC definition
+spec:
+  resources:
+    requests:
+      storage: 10Gi
+----
+
+[source,bash]
+----
+# Example command to edit the PVC and apply the patch
+oc edit pvc data-automation-hub -n aap-rh1 
+# Manually change spec.resources.requests.storage to '10Gi'
+----
+
+#### 3. Final Verification
+
+After both CR and PVC changes are applied, the Operator will reconcile.
+
+1.  Verify the new resource limits have been applied to the `hub-content` deployment.
+2.  Ensure the PVC size is updated (`oc get pvc data-automation-hub`).
+3.  Attempt the **"Community"** repository sync again in the UI. A successful sync confirms the resolution.

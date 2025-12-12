@@ -1,7 +1,22 @@
-* xref:module-01.adoc[1. RPM Native Container]
-** xref:module-01.adoc#repositories[Repositories]
-** xref:module-01.adoc#software[Software]
+= Learning Lab Navigation
 
-* xref:module-02.adoc[2. GitHub Sourced Container]
-** xref:module-02.adoc#prerequisites[Install Prerequisites]
-** xref:module-02.adoc#container[Enable Container]
+* xref:scenario-01-steps.adoc[1. Scenario #1: AAP Gateway Troubleshooting]
+** xref:scenario-01-solution.adoc[1.1. Solution: Gateway Troubleshooting]
+
+* xref:scenario-02-steps.adoc[2. Scenario #2: Automation Hub Storage]
+** xref:scenario-02-solution.adoc[2.1. Solution: Automation Hub Storage]
+
+* xref:scenario-03-steps.adoc[3. Scenario #3: Database/Gateway Issues]
+** xref:scenario-03-solution.adoc[3.1. Solution: Database/Gateway Issues]
+
+* xref:scenario-04-steps.adoc[4. Scenario #4: Scheduling/Resource Limits]
+** xref:scenario-04-solution.adoc[4.1. Solution: Scheduling/Resource Limits]
+
+* xref:scenario-05-steps.adoc[5. Scenario #5: Automation Hub Sync Failures]
+** xref:scenario-05-solution.adoc[5.1. Solution: Automation Hub Sync Failures]
+
+* xref:scenario-06-steps.adoc[6. Scenario #6: Automation Controller EE]
+** xref:scenario-06-solution.adoc[6.1. Solution: Automation Controller EE]
+
+* xref:scenario-07-steps.adoc[7. Scenario #7: Lightspeed Configuration]
+** xref:scenario-07-solution.adoc[7.1. Solution: Lightspeed Configuration]

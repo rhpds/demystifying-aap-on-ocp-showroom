@@ -1,0 +1,125 @@
+= 💡 Scenario #4: Solutions and Resolution
+
+This page provides the detailed solutions for the issues presented in Scenario #4. Review these steps after you have attempted the diagnosis and resolution yourself.
+
+---
+
+## 🛑 Problem 1: Database Pod Scheduling Failure
+
+### Diagnosis
+
+The **PostgreSQL Database** pods were unable to transition to a `Pending` or `Running` state because they could not be scheduled onto a node. The diagnosis (e.g., using `oc describe pod <database-pod-name>`) would reveal a scheduling error indicating that no node matched the specified `nodeSelector`. The existing `nodeSelector` was invalid or did not match any available nodes in the cluster.
+
+### 🛠️ Resolution: Correcting Node Scheduling
+
+The fix requires modifying the database configuration within the main **Ansible Automation Platform Custom Resource (CR)**.
+
+#### 1. Modify the Database Configuration in the CR
+
+You have two valid options to resolve the scheduling issue:
+
+* **Option A: Specify a Valid Selector**
+    Replace the existing, incorrect `nodeSelector` with a standard, valid selector that targets all Linux nodes.
+
+    [source,yaml]
+    ----
+    # Example snippet of the modified AAP CR (Option A)
+    spec:
+      database:
+        ...
+        nodeSelector:
+          kubernetes.io/os: linux
+        ...
+    ----
+
+* **Option B: Remove the Selector**
+    If the database pods should be allowed to schedule on any available node without restriction, delete the `nodeSelector` field entirely from the database section of the CR.
+
+    [source,yaml]
+    ----
+    # Example snippet of the modified AAP CR (Option B)
+    spec:
+      database:
+        ...
+        # Ensure nodeSelector is removed or commented out
+        ...
+    ----
+
+[NOTE]
+====
+Applying either fix will instruct the Operator to update the Database Deployment, allowing the pods to be scheduled onto an appropriate node.
+====
+
+---
+
+## 🛑 Problem 2: API Pod Resource Exhaustion
+
+### Diagnosis
+
+The **API** pods were failing due to oversized resource requests and limits. The requested resources (both CPU and Memory) for the API container exceeded the available resources of the node or the cluster itself, preventing the pods from starting or leading to excessive contention.
+
+### 🛠️ Resolution: Reducing Resource Requirements
+
+The fix is to reduce the resource requirements defined in the API section of the CR to values that are manageable and realistic for the cluster's capacity.
+
+#### 1. Modify the API Resource Requirements in the CR
+
+Reduce the values in `spec.automationhub.web.resource_requirements` (or similar location for the API pods) to a manageable level.
+
+[.instruction]
+====
+Reduce the resource requests and limits.
+====
+
+[source,yaml]
+----
+# Example snippet of the modified AAP CR
+spec:
+  automationhub:
+    web:
+      ...
+      resource_requirements:
+        requests:
+          cpu: 1000m  # 1 CPU core (Example)
+          memory: 500Mi # 500 Mebibytes
+        limits:
+          cpu: 2000m  # 2 CPU cores (Example)
+          memory: 5Gi # 5 Gibibytes
+      ...
+----
+
+[TIP]
+====
+Using values like `500Mi` for memory requests and a reasonable limit (e.g., `5Gi`) provides a better balance, ensuring the pod can be scheduled while allowing it to burst up to the limit if necessary.
+====
+
+
+---
+
+## ♻️ Final Reconciliation
+
+After both CR modifications are applied, the Operator must re-read the configuration and re-deploy the necessary components.
+
+#### 1. Delete the Gateway Operator Manager Pod
+
+Manually delete the manager pod for the **Gateway Operator** to force it to reconcile the entire platform against the newly updated CR.
+
+[.instruction]
+====
+Delete the Operator's manager pod.
+====
+
+[source,bash]
+----
+oc delete pod -n aap-rh1 <gateway-operator-manager-pod-name>
+----
+
+#### 2. Verification
+
+Monitor the pod statuses. The Operator will provision new Database and API pods using the corrected configuration. All pods should eventually transition to a `Running` and `Ready` state.
+
+[source,bash]
+----
+oc get pods -n aap-rh1
+# All pods should now be Running and Ready (e.g., 1/1)
+----

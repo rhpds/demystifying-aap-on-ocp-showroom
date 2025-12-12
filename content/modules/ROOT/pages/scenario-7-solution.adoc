@@ -1,0 +1,74 @@
+= 💡 Scenario #7: Solutions and Resolution
+
+This page provides the detailed solution for the issue presented in Scenario #7, which involves an incorrect Large Language Model (LLM) configuration for Ansible Lightspeed Intelligent Assistant (ALIA).
+
+---
+
+## 🛑 Problem: Invalid Large Language Model (LLM) Configuration
+
+### Diagnosis
+
+The **Ansible Lightspeed Intelligent Assistant (ALIA)** service was unable to initialize and connect to its back-end AI model, leading to the chat icon disappearing from the UI. The root cause was that the ALIA configuration was set to use a model that it was not authorized to access or that did not exist in the configured environment.
+
+The logs for the `lightspeed-api` or `chatbot` pods would show authentication failures or model lookup errors, revealing the incorrectly referenced model name.
+
+### 🛠️ Resolution: Updating the Chatbot Secret
+
+The configuration for the LLM is stored within a Kubernetes **Secret**. The fix is to edit this secret and replace the unauthorized model name with a known, authorized, and available model (e.g., `granite-3-2-8b-instruct`).
+
+#### 1. Update the Chatbot Configuration Secret
+
+[.instruction]
+====
+Edit the `chatbot-configuration-secret` to change the model name being referenced by ALIA.
+====
+
+[source,bash]
+----
+# Edit the secret, replacing <namespace> with your assigned namespace
+oc edit secret chatbot-configuration-secret -n aap-rh1
+----
+
+In the YAML data of the secret, locate the field referencing the model name and update its value:
+
+[source,yaml]
+----
+# Example structure inside the Secret (keys are often base64 encoded)
+data:
+  # The field name depends on the operator, but the value is the LLM name:
+  model_name: granite-3-2-8b-instruct # <--- UPDATE THIS VALUE
+----
+
+[NOTE]
+====
+The actual values within a Kubernetes Secret's `data` field are base64 encoded strings, so you may need to decode the original value, modify it, and re-encode the corrected value if the `oc edit` command does not handle the decoding automatically.
+====
+
+#### 2. Force Reconciliation
+
+The **Lightspeed Operator** needs to be notified of the change to redeploy the services with the new configuration.
+
+[.instruction]
+====
+Delete the `lightspeed operator-manager` pod to force a reconciliation cycle.
+====
+
+[source,bash]
+----
+oc delete pod -n aap-rh1 <lightspeed-operator-manager-pod-name> 
+----
+
+#### 3. Verification
+
+Wait for the Lightspeed pods to restart and stabilize (`Running` and `Ready`).
+
+[.instruction]
+====
+Verify the ALIA chat icon has reappeared in the top right of the AAP Gateway UI and that the assistant responds to a test query.
+====
+
+[source,bash]
+----
+oc get pods -n aap-rh1
+# Lightspeed pods should return to a 'Running' and 'Ready' state.
+----

@@ -1,0 +1,85 @@
+= 💡 Scenario #2: Solutions and Resolution
+
+This page provides the detailed solution for the issue presented in Scenario #2. Review these steps after you have attempted the diagnosis and resolution yourself.
+
+---
+
+## 🛑 Problem: Automation Hub Storage Class Misconfiguration
+
+### Diagnosis
+
+The Automation Hub pods were failing due to an inability to provision or mount the required **Persistent Volume Claim (PVC)**. In a typical highly-available (HA) deployment, multiple Hub pods need to access the same storage simultaneously. This necessitates a storage type that supports the **ReadWriteMany (RWX)** access mode.
+
+The original StorageClass was likely set to a type that only supports **ReadWriteOnce (RWO)**, preventing the Hub from scaling or operating correctly.
+
+
+
+### 🛠️ Resolution: Updating the StorageClass
+
+The fix involves modifying the main **Ansible Automation Platform Custom Resource (CR)** to specify a valid RWX-capable StorageClass, followed by manually forcing a clean reconciliation.
+
+#### 1. Modify the AAP Custom Resource
+
+Update the `spec.automationhub.storageClass` field in the `AnsibleAutomationPlatform` CR to use an RWX-compatible StorageClass available in your cluster, such as `ocs-external-storagecluster-cephfs`.
+
+[.instruction]
+====
+Edit the AAP CR to change the StorageClass.
+====
+
+[source,yaml]
+----
+# Example snippet of the modified AAP CR
+spec:
+  automationhub:
+    ...
+    storageClass: ocs-external-storagecluster-cephfs
+    ...
+----
+
+#### 2. Delete the Old PVC
+
+The existing PVC created with the incorrect StorageClass must be deleted so the Operator can provision a new one.
+
+[.instruction]
+====
+Identify and delete the PVC associated with the Automation Hub.
+====
+
+[source,bash]
+----
+# Use the correct namespace for your deployment
+oc delete pvc -n aap-rh1 data-automation-hub
+----
+
+#### 3. Force Reconciliation
+
+To ensure the Operator immediately recognizes the change and provisions the new PVC correctly, manually delete the key components that manage the Hub. This triggers the Operator to reconcile the environment against the updated CR.
+
+[.instruction]
+====
+Delete the Operator's manager pod and the Hub API Deployment.
+====
+
+[source,bash]
+----
+# 3a. Delete the Hub Operator manager pod
+oc delete pod -n aap-rh1 <hub-operator-manager-pod-name> 
+
+# 3b. Delete the hub-api Deployment (if the operator hasn't done so already)
+oc delete deployment -n aap-rh1 hub-api 
+----
+
+#### 4. Verification
+
+Monitor the pods and PVCs in your namespace. The Operator should:
+
+1.  Provision a new `data-automation-hub` PVC using the `ocs-external-storagecluster-cephfs` StorageClass.
+2.  Redeploy the `hub-api` Deployment.
+3.  The new **Automation Hub** pods should successfully mount the PVC and transition to a `Running` and `Ready` state.
+
+[source,bash]
+----
+oc get pods -n aap-rh1
+# All Hub pods should now be Running and Ready (e.g., 1/1)
+----
