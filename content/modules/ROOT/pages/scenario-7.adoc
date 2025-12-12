@@ -53,7 +53,7 @@ Execute the following command, ensuring you replace the placeholder with the cor
 
 [source,bash]
 ----
-ansible-playbook site.yml -t break -e chatbot_token='token_value_from_resource_page'
+ansible-playbook site.yml -t break -e chatbot_token={litellm_virtual_key}
 ----
 
 [NOTE]

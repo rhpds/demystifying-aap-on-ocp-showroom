@@ -9,7 +9,7 @@
 
 Welcome to the **Demystifying Ansible Automation Platform (AAP) on OpenShift Container Platform (OCP)** lab at Red Hat One!
 
-In this lab, we are going to dive deep into troubleshooting Ansible Automation Platform deployments on OpenShift. You will work through practical exercises focused on the AAP Operator to help demonstrate where to look to find out what is going on with the deployment and how to fix some of the most common issues the Ansible Service Broker (SBR) encounters.
+In this lab, we are going to dive deep into troubleshooting Ansible Automation Platform deployments on OpenShift. You will work through practical exercises focused on the AAP Operator to help demonstrate where to look to find out what is going on with the deployment and how to fix some of the most common issues the Ansible SBR encounters.
 
 ---
 
@@ -56,12 +56,25 @@ The core workflow for each scenario is:
 To get started with the lab, please complete the following steps:
 
 .   **SSH into the Bastion Host**
-    (Insert specific SSH steps here, e.g., using a provided IP and key)
     [source,bash]
     ----
-    # Replace <IP> and <KEY> with your credentials
-    ssh -i ~/.ssh/<KEY>.pem user@<IP_ADDRESS>
+    ssh {bastion_ssh_user_name}@{bastion_public_hostname} -p {bastion_ssh_user_name}
+    Use password {bastion_ssh_password} when prompted.
     ----
+
+.   **Access OpenShift UI**
+    [source,bash]
+    ----
+    OpenShift Console available at: {openshift_console_url}
+    OpenShift Admin username: {openshift_cluster_admin_username}
+    OpenShift Admin password: {openshift_cluster_admin_password}
+    ----    
+
+.   **Access OpenShift CLI**
+    [source,bash]
+    ----
+    oc whoami
+    ----       
 
 .   **Clone the Repository**
     Change into your working directory and clone the lab repository.
