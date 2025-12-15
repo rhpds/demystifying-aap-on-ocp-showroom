@@ -31,6 +31,11 @@ Execute the following command, then select **Scenario 3** when prompted.
 ansible-playbook site.yml -t deploy
 ----
 
+[NOTE]
+====
+The deployment can take up to 15 minutes, now would be a good time to take a break, ask any questions, hydrate.
+====
+
 #### 2. Introduce Failure (Break)
 
 [.instruction]
@@ -42,7 +47,7 @@ Execute the following command, then select **Scenario 3** when prompted.
 ----
 ansible-playbook site.yml -t break
 
----
+----
 
 ### ✅ Troubleshooting and Resolution
 
@@ -62,8 +67,8 @@ oc get svc -n aap-rh1
 [.instruction]
 ====
 **UI Method:**
-1. Navigate to **Workloads** -> **Pods** and view the logs for the `automation-controller` pod for database connection errors.
-2. Navigate to **Networking** -> **Services** in the OpenShift console. Check for the database service (`<scenario-name>-aap-postgres-15`).
+1. Navigate to **Workloads** -> **Pods** and view the logs for the `aap-gateway` pod forerrors.
+2. Navigate to **Networking** -> **Services** in the OpenShift console. Check for any missing service.
 ====
 
 #### Step 2: Check Gateway Access and Credentials
