@@ -47,7 +47,7 @@ Identify and delete the PVC associated with the Automation Hub.
 [source,bash]
 ----
 # Use the correct namespace for your deployment
-oc delete pvc -n aap-rh1 data-automation-hub
+oc delete pvc -n scenario-2 scenario-2-hub-file-storage
 ----
 
 #### 3. Force Reconciliation
@@ -62,10 +62,10 @@ Delete the Operator's manager pod and the Hub API Deployment.
 [source,bash]
 ----
 # 3a. Delete the Hub Operator manager pod
-oc delete pod -n aap-rh1 <hub-operator-manager-pod-name> 
+oc delete pod -n scenario-2 <hub-operator-manager-pod-name> 
 
 # 3b. Delete the hub-api Deployment (if the operator hasn't done so already)
-oc delete deployment -n aap-rh1 hub-api 
+oc delete deployment -n scenario-2 hub-api 
 ----
 
 #### 4. Verification
@@ -74,5 +74,5 @@ Monitor the namespace. The Operator will provision a new PVC, redeploy the `hub-
 
 [source,bash]
 ----
-oc get pods -n aap-rh1
+oc get pods -n scenario-2
 ----

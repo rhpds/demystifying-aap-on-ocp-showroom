@@ -1,11 +1,11 @@
 [#scenario-02,cols="3"]
-.Scenario #2: Automation Hub Storage Failure
+.Scenario #2: Automation Hub Issues
 |===
 | **Mode** | **Components** | **Namespace**
 
 | Easy
 | Automation Hub
-| `aap-rh1`
+| `scenario-2`
 |===
 
 ### 📝 Objectives
@@ -61,14 +61,14 @@ The first step is to check which components are failing and why they cannot star
 
 [source,bash]
 ----
-oc get pods -n aap-rh1
-oc get pvc -n aap-rh1
+oc get pods -n scenario-2
+oc get pvc -n scenario-2
 ----
 
 [.instruction]
 ====
 **UI Method:**
-1. Navigate to **Workloads** -> **Pods** in the OpenShift console. Filter by the `aap-rh1` namespace.
+1. Navigate to **Workloads** -> **Pods** in the OpenShift console. Filter by the `scenario-2` namespace.
 2. Observe any Hub-related pods stuck in a `Pending` state.
 3. Navigate to **Storage** -> **Persistent Volume Claims (PVCs)** and inspect the status of the Hub PVC.
 ====
@@ -87,8 +87,8 @@ Identify any Hub pods in a `Pending` state. Use the next step to find the reason
 
 [source,bash]
 ----
-oc describe pod <failing-hub-pod> -n aap-rh1
-oc describe pvc data-automation-hub -n aap-rh1
+oc describe pod <failing-hub-pod> -n scenario-2
+oc describe pvc data-automation-hub -n scenario-2
 ----
 
 [.instruction]
@@ -114,7 +114,7 @@ Monitor the namespace until the new PVC is bound and all Hub pods transition to 
 
 [source,bash]
 ----
-oc get pods -n aap-rh1
+oc get pods -n scenario-2
 ----
 
 ---

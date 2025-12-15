@@ -1,9 +1,9 @@
 [#scenario-03,cols="3"]
-.Scenario #3: Database Service and Gateway Password
+.Scenario #3: Gateway Issues
 |===
 | **Mode** | **Components** | **Namespace**
 
-| Easy
+| Hard
 | Automation Controller, Gateway
 | `aap-rh1`
 |===
@@ -11,16 +11,9 @@
 ### 📝 Objectives
 
 * Log in to the **AAP Gateway UI** (if possible).
-* Observe connectivity failures, likely between the Controller/Web and the database.
-* Diagnose two separate issues: one impacting database access and one impacting Gateway login credentials.
+* Observe connectivity failures
+* Diagnose two separate issues
 * Resolve both issues to restore full functionality.
-
----
-
-### 💡 Hint
-
-* Use `oc get all` and `oc describe` to look for missing or deleted objects that are crucial for service-to-service communication.
-* For authentication errors, investigate whether a sensitive resource (like a password or secret) has been changed outside of the standard operator lifecycle.
 
 ---
 
@@ -48,47 +41,43 @@ Execute the following command, then select **Scenario 3** when prompted.
 [source,bash]
 ----
 ansible-playbook site.yml -t break
-----
-
-[NOTE]
-====
-This break introduces a missing database service and a manipulated Gateway password.
-====
 
 ---
 
-### ✅ Steps to Resolution
+### ✅ Troubleshooting and Resolution
 
-#### Step 1: Check Database Connectivity
+#### Step 1: Check Pod Logs
 
 [.instruction]
 ====
-Check the logs of the Automation Controller and Web pods for database connection errors. Then, check the existence of the expected database service.
+**CLI Method:** Review Gateway pod logs.
 ====
 
 [source,bash]
 ----
+oc logs -n aap-rh1 <Gateway-pod-name>
 oc get svc -n aap-rh1
 ----
 
-[.output]
+[.instruction]
 ====
-If the database service is missing, you must recreate it using the exact specifications the operator expects, including required metadata like `ownerReferences`.
+**UI Method:**
+1. Navigate to **Workloads** -> **Pods** and view the logs for the `automation-controller` pod for database connection errors.
+2. Navigate to **Networking** -> **Services** in the OpenShift console. Check for the database service (`<scenario-name>-aap-postgres-15`).
 ====
 
-#### Step 2: Check Gateway Access
+#### Step 2: Check Gateway Access and Credentials
 
 [.instruction]
 ====
-Attempt to log into the AAP Gateway UI. If authentication fails despite using the correct known credentials, assume the stored password has been corrupted or changed.
+Attempt to log into the AAP Gateway UI. Review gateway pod logs
 ====
 
 #### Step 3: Implement the Fixes
 
 [.instruction]
 ====
-1. Recreate the missing database service object.
-2. Use the `aap-gateway-manage` utility from within the environment to reset the Gateway password.
+Once you have diagnosed the issues, follow the specific resolution steps located in the solution document: **xref:scenario-3-solution.adoc[3.1. Solution: Database/Gateway Issues]**
 ====
 
 #### Step 4: Verify Resolution
@@ -97,3 +86,15 @@ Attempt to log into the AAP Gateway UI. If authentication fails despite using th
 ====
 Verify all pods are running and ready, then successfully log into the AAP UI.
 ====
+
+[source,bash]
+----
+oc get pods -n aap-rh1
+----
+
+---
+
+### 💡 Hint
+
+* Use `oc get all` to look for missing or deleted Kubernetes objects, focusing on **Services** first.
+* For authentication errors, you must use the appropriate **AAP management utility** to reset the internal password back to the value expected by the Operator/CR.
