@@ -1,0 +1,115 @@
+# AAP Database / Authentication Issues
+
+[#scenario-1,cols="3"]
+.Scenario #1: Ansible Automation Platform Issues
+|===
+| **Mode** | **Components** | **Namespace**
+
+| Medium
+| Automation Gateway, Database
+| `scenario-1`
+|===
+
+## 📝 Objectives
+
+* Diagnose why Ansible Automation Platform pods are failing to start
+* Login into Ansible Automation Platform to verify that everything is ok
+
+
+## 🛠️ Prerequisites: Setup and Break
+
+### 1. Initial Deployment
+[.instruction]
+====
+Execute the following command, then type **1** when prompted
+====
+
+[source,bash]
+----
+ansible-playbook site.yml
+----
+
+[.instruction]
+====
+Go to **Workloads -> Pods -> aap-gateway-operator-controller-manager -> Logs** to watch progress on the deployment.
+====
+
+### 2. Introduce Failure (Break)
+[.instruction]
+====
+Execute the following command, then type **1** when prompted
+====
+
+[source,bash]
+----
+ansible-playbook site.yml -t break
+----
+
+
+## ✅ Troubleshooting and Resolution
+
+### Step 1. Investigate initial problem
+
+[.instructions]
+====
+Verify which pods are failing
+====
+
+.Command Line
+[source,bash]
+----
+oc get pods -n scenario-1
+----
+
+.UI
+[source]
+----
+Workloads -> Pods
+----
+
+### Step 2. Identify the error messages
+
+[.instructions]
+====
+For each pod that is failing, identify the error messages being reported in the pod logs.
+====
+
+.Command Line
+[source,bash]
+----
+oc logs pod $POD -n scenario-1
+oc describe pod $POD -n scenario-1
+----
+
+.UI
+[source]
+----
+Workloads -> Pods -> $FAILING_POD -> Logs
+Workloads -> Pods -> $FAILING_POD -> Events
+----
+
+### Step 3: Implement the fix
+
+[.instruction]
+====
+Once you have diagnosed the issue, follow the specific resolution steps located in the solution document: **xref:scenario-1-solution.adoc[1.1. Solution: AAP Database / Authentication Issues]**
+====
+
+### Step 4: Verify Resolution
+
+[.instruction]
+====
+Monitor the namespace until all of the pods are back in a "Running" state.
+====
+
+.Command Line
+[source,bash]
+----
+oc get pods -n scenario-1
+----
+
+.UI
+[source]
+----
+Workloads -> Pods
+----

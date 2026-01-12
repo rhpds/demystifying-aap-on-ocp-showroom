@@ -1,0 +1,146 @@
+# 💡 Scenario #1: Solutions and Resolution
+
+This page provides the detailed solution for the issue presented in Scenario #1. Review these steps after you have attempted the diagnosis and resolution yourself.
+
+## 🛑 Problem: Invalid Database Encryption Secrets
+
+### Diagnosis
+
+It appears that the database encryption secrets were changed by someone or some automated tool. These secrets are very important as they are used to encrypt sensitive information before it is stored within the database.
+
+Each component in Ansible Automation Platform uses a different name for this secret. The table will outline the standard names that will be used if a custom secret wasn't passed to custom resource definition.
+
+[#scenario-1,cols="2"]
+.Ansible Automation Platform Secret Key Names
+|===
+| **Mode** | **Components**
+
+| Automation Gateway
+| `$INSTANCE_NAME-db-fields-encryption-secret`
+
+| Automation Controller
+| `$INSTANCE_NAME-controller-secret-key`
+
+| Automation EDA Controller
+| `$INSTANCE_NAME-eda-db-fields-encryption-secret`
+
+| Automation Hub
+| `$INSTANCE_NAME-db-fields-encryption`
+|===
+
+It is highly unlikely for these secrets to ever be modified. The purpose of this task was to introduce you to the naming standard that the Ansible Automation Platform operator uses. In addition, its purpose is to show how important this secret is and what could happen if the value of secrets ever changed.
+
+### Resolution
+
+[.instructions]
+====
+Get the list of secrets
+====
+
+.Command Line
+[source,bash]
+----
+oc get secrets -n scenario-1
+----
+
+.UI
+[source]
+----
+Workloads -> Secrets
+----
+
+{blank} +
+
+[.instructions]
+====
+Use the table above to investigate each database encryption secret
+====
+
+.Command Line
+[source,bash]
+----
+oc -n scenario-1 extract secret/$SECRET_NAME --to=-
+----
+
+.UI
+[source]
+----
+Workloads -> Secrets -> $SECRET_NAME -> Reveal Values
+----
+
+{blank} +
+
+[.instructions]
+====
+Copy-paste the value found in the secret ending in the **-2** suffix into the original secret.
+====
+
+{blank} +
+
+[.instructions]
+====
+Perform a rollout restart of the deployments
+====
+
+.Command Line
+[source,bash]
+----
+oc -n scenario-1 get deployments
+oc -n scenario-1 rollout restart deployment $DEPLOYMENT_NAME
+----
+
+.UI
+[source]
+----
+Workloads -> Deployments -> $DEPLOYMENT -> *** (verticial hamburger menu) -> Restart Rollout
+----
+
+## 🛑 Problem: Database Resource Requirements
+
+### Diagnosis
+
+Someone made the database requirements way too low and thus OpenShift is not able to start the postgresql container in the database pod.
+
+### Resolution
+
+[.instructions]
+====
+Modify or remove the `resource_requiments` on the database pod.
+====
+
+.Command Line
+[source,bash]
+----
+oc -n scenario-1 edit ansibleautomationplatform scenario-1-aap
+----
+
+.UI
+[source]
+----
+Operators -> Installed Operators -> Ansible Automation Platform -> All Instances -> scenario-1-aap
+----
+
+## 🛑 Problem: Database Resource Requirements
+
+### Diagnosis
+
+It appears that `auto_upgrade: false` was set on the Automation Controller. Its purpose is to stop the operator from making any changes to the running instance. It was a feature that was added to the Automation Controller operator a few years ago. Ansible Engineering does not recommend using it within production.
+
+### Resolution
+
+[.instructions]
+====
+Set `auto_upgrade` to true within the custom resource definition.
+====
+
+.Command Line
+[source,bash]
+----
+oc -n scenario-1 edit ansibleautomationplatform scenario-1-aap
+----
+
+.UI
+[source]
+----
+Operators -> Installed Operators -> Ansible Automation Platform -> All Instances -> scenario-1-aap
+----
