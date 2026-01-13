@@ -19,7 +19,10 @@
 ### 💡 Hint
 
 * The ALIA service requires a valid connection to a Large Language Model (LLM). Review the logs for the `lightspeed-api` and `chatbot` pods. Look for messages referencing **model names** or **authentication/access errors**.
-* The required model information is available on the **Lab Resource Page**.
+* The required model information is available below as well as on the **Lab Resource Page**.
+** Model API: {litellm_api_base_url}
+** Model API Key: {litellm_virtual_key}
+** Available Model: {litellm_available_models_list}
 
 ---
 
@@ -71,38 +74,16 @@ oc logs -n aap-rh1 <lightspeed-api-pod-name>
 oc logs -n aap-rh1 <chatbot-pod-name>
 ----
 
-[.output]
-====
-The logs will confirm that the service is attempting to connect to an invalid model.
-====
-
-#### Step 2: Implement the Configuration Fix
+#### Step 2: Implement Fixes
 
 [.instruction]
 ====
-Edit the `chatbot-configuration-secret` to change the invalid model name to the correct, authorized model (`granite-3-2-8b-instruct`).
+Once you have diagnosed the issues, run the fix task or follow the specific resolution steps located in the solution document: **xref:scenario-7-solution.adoc[7.1. Solution: Lightspeed Issues]**
 ====
 
-[TIP]
-====
-You may need to base64 decode/encode values if editing the secret directly via YAML.
-====
-
-#### Step 3: Force Reconciliation
+#### Step 3: Verify Resolution
 
 [.instruction]
 ====
-Delete the **Lightspeed Operator** manager pod to force the service to reload the corrected secret.
-====
-
-#### Step 4: Verify Resolution
-
-[.instruction]
-====
-Check the AAP Gateway UI.
-====
-
-[.output]
-====
-The **Ansible Lightspeed Intelligent Assistant** chat icon should now be visible and functional.
+After applying the fixes and allowing reconciliation, attempt to interact with Ansible Lightspeed Intelligent Assistant.
 ====
