@@ -1,27 +1,25 @@
 [#scenario-04,cols="3"]
-.Scenario #4: Scheduling and Resource Limit Failures
+.Scenario #4: Gateway Pod Issues
 |===
 | **Mode** | **Components** | **Namespace**
 
-| Easy
-| Database, API/Web
+| Easy/Medium
+| Gateway
 | `aap-rh1`
 |===
 
 ### 📝 Objectives
 
-* Log in to the **AAP Gateway UI** (if possible).
+* Log in to the **AAP Gateway UI**.
 * Observe multiple core components failing to deploy or stabilize.
-* Diagnose two distinct issues: a pod scheduling failure and a resource limit exhaustion.
-* Resolve both issues by modifying the AAP Custom Resource (CR).
+* Diagnose two distinct issues
+* Resolve both issues.
 
 ---
 
 ### 💡 Hint
 
-* Use `oc describe pod <failing-pod-name>`:
-    * Look for **Events** related to scheduling problems (e.g., "0/X nodes are available: X node(s) didn't match node selector").
-    * Look for **Resource** sections to verify if the requested CPU/Memory is excessively high for the cluster capacity.
+* Use `oc describe pod <failing-pod-name>`
 
 ---
 
@@ -51,63 +49,52 @@ Execute the following command, then select **Scenario 4** when prompted.
 ansible-playbook site.yml -t break
 ----
 
-[NOTE]
+### ✅ Steps to Resolution
+
+#### Step 1: Check Pod Logs
+
+[.instruction]
 ====
-This break introduces an invalid `nodeSelector` for the database and oversized resource limits for the API pods.
+Identify the failing pods and describe them to find the failure reason.
 ====
+
+[source,bash]
+----
+oc get pods -n aap-rh1
+oc describe pod <failing-pod> -n aap-rh1
+----
+
+#### Step 2: Implement the Fixes
+
+[.instruction]
+====
+Once you have diagnosed the issues, follow the specific resolution steps located in the solution document: **xref:scenario-4-solution.adoc[4.1. Solution: Gateway Issues]**
+====
+
+#### Step 3: Verify Resolution
+
+[.instruction]
+====
+Verify all pods are running and ready, then successfully log into the AAP UI.
+====
+
+[source,bash]
+----
+oc get pods -n aap-rh1
+----
 
 ---
 
-### ✅ Steps to Resolution
+### 💡 Hint
 
-#### Step 1: Inspect Database Scheduling
-
+* There are two issues here, try to resolve both of them before running the fix playbook. View the solution document if stuck. Run the fix playbook to fix both issues. 
 [.instruction]
 ====
-Identify the failing Database pods and describe them to find the scheduling failure reason.
+Execute the following command, then select **Scenario 4** when prompted.
 ====
 
 [source,bash]
 ----
-oc get pods -n aap-rh1 | grep postgres
-oc describe pod <failing-postgres-pod> -n aap-rh1
+ansible-playbook site.yml -t fix
+
 ----
-
-[.output]
-====
-The events should indicate a `nodeSelector` mismatch.
-====
-
-#### Step 2: Inspect API Resource Limits
-
-[.instruction]
-====
-Identify the failing API pods and describe them to review the requested resource requirements.
-====
-
-[source,bash]
-----
-oc get pods -n aap-rh1 | grep api
-oc describe pod <failing-api-pod> -n aap-rh1
-----
-
-[.output]
-====
-The resource section will show requests/limits that exceed typical cluster capacity (e.g., 20Gi memory limit).
-====
-
-#### Step 3: Implement the Fixes
-
-[.instruction]
-====
-Modify the AAP Custom Resource (CR) to:
-1. Fix the database `nodeSelector` or remove it.
-2. Reduce the API resource requests/limits to manageable values.
-====
-
-#### Step 4: Force Reconciliation and Verify
-
-[.instruction]
-====
-Delete the **Gateway Operator** manager pod to force a reconciliation of the changes, then monitor the pod statuses.
-====

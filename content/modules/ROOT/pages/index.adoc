@@ -22,8 +22,9 @@ In this lab, we are going to dive deep into troubleshooting Ansible Automation P
 [TIP]
 .Bastion Host Pre-Configuration
 The Bastion Host has been pre-configured with:
+
 * The `oc` client (OpenShift CLI).
-* The required Ansible modules and collections.
+* The required Ansible tasks, modules, and collections.
 * All other resources needed to complete the lab.
 
 ---
@@ -31,11 +32,11 @@ The Bastion Host has been pre-configured with:
 [#scenarios]
 == 🧩 Lab Scenarios Overview
 
-You have **7 scenarios** (Note: Adjusted count based on content provided so far, you mentioned 8 but only listed 7 scenarios in the nav) to work through, covering each major component of Ansible Automation Platform:
+You have **8 scenarios** to work through, covering each major component of Ansible Automation Platform:
 
 * **Gateway**
-* **Controller**
-* **Automation Hub**
+* **Automation Execution (Automation Controller)**
+* **Automation Content (Automation Hub)**
 * **Event-Driven Ansible (EDA)**
 * **Ansible Lightspeed Intelligent Assistant (ALIA)**
 
@@ -98,17 +99,8 @@ Confirm that your `oc` (OpenShift CLI) connection is valid from the Bastion Host
 oc whoami
 ----
 
-### 3. Clone the Repository
 
-Change into your working directory and clone the lab repository containing the playbooks.
-
-[source,bash]
-----
-git clone https://github.com/your-repo/this-lab.git
-cd this-lab
-----
-
-### 4. Deploy Initial Resources
+### 3. Deploy Initial Resources
 
 Run the main Ansible playbook to deploy the core AAP resources and prepare the environment.
 
@@ -124,7 +116,7 @@ ansible-playbook site.yml
 
 [.output]
 ====
-You will be prompted to select a scenario. Select **Scenario 1** to begin the troubleshooting exercises.
+You will be prompted to select a scenario. Select **xref:scenario-1.adoc[1 AAP Gateway Troubleshooting]** to begin the troubleshooting exercises.
 ====
 
 ---

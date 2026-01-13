@@ -10,7 +10,7 @@
 
 ### 📝 Objectives
 
-* Log in to the **AAP Gateway UI** (if possible).
+* Log in to the **AAP Gateway UI**.
 * Observe connectivity failures
 * Diagnose two separate issues
 * Resolve both issues to restore full functionality.
@@ -67,11 +67,11 @@ oc get svc -n aap-rh1
 [.instruction]
 ====
 **UI Method:**
-1. Navigate to **Workloads** -> **Pods** and view the logs for the `aap-gateway` pod forerrors.
+1. Navigate to **Workloads** -> **Pods** and view the logs for the `aap-gateway` pod for errors.
 2. Navigate to **Networking** -> **Services** in the OpenShift console. Check for any missing service.
 ====
 
-#### Step 2: Check Gateway Access and Credentials
+#### Step 2: Attempt logging in to AAP.
 
 [.instruction]
 ====
@@ -82,7 +82,7 @@ Attempt to log into the AAP Gateway UI. Review gateway pod logs
 
 [.instruction]
 ====
-Once you have diagnosed the issues, follow the specific resolution steps located in the solution document: **xref:scenario-3-solution.adoc[3.1. Solution: Database/Gateway Issues]**
+Once you have diagnosed the issues, follow the specific resolution steps located in the solution document: **xref:scenario-3-solution.adoc[3.1. Solution: Gateway Issues]**
 ====
 
 #### Step 4: Verify Resolution
@@ -101,5 +101,15 @@ oc get pods -n aap-rh1
 
 ### 💡 Hint
 
-* Use `oc get all` to look for missing or deleted Kubernetes objects, focusing on **Services** first.
-* For authentication errors, you must use the appropriate **AAP management utility** to reset the internal password back to the value expected by the Operator/CR.
+* There are two issues here, you aren't expected to know how to fix the issues, only to discover what the issue is. Run the fix playbook to fix the first issue when you know what it is.
+* Once the first issue is resolved, log back into AAP, review logs, and determine the issue. You aren't expected to know how to fix this issue, only to discover what the issue is. Rerun the fix playbook to fix the second issue when you know what it is.
+[.instruction]
+====
+Execute the following command, then select **Scenario 3** when prompted.
+====
+
+[source,bash]
+----
+ansible-playbook site.yml -t fix
+
+----

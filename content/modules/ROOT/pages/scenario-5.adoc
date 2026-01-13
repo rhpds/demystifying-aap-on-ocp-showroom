@@ -13,13 +13,13 @@
 * Log in to the **AAP Gateway UI** successfully.
 * Navigate to the **Automation Hub** -> **Repositories** section.
 * Attempt to synchronize the built-in **"Community"** repository.
-* Diagnose and resolve the two underlying issues preventing successful synchronization (resource limits and storage size).
+* Diagnose and resolve the two underlying issues preventing successful synchronization.
 
 ---
 
 ### 💡 Hint
 
-* Synchronization failures are often related to the worker pods. Use standard Kubernetes tooling (`oc` or `kubectl`) to review the logs for the **Hub Content pods**. Errors may point to **OOMKilled** (resource limits) or **disk quota exceeded** (storage size).
+* Synchronization failures are often related to Hub pods. Use  OpenShift tooling (`oc` or `kubectl`) or the OpenShift Web UI to review the logs for the **Hub pods**.
 
 ---
 
@@ -49,34 +49,25 @@ Execute the following command, then select **Scenario 5** when prompted.
 ansible-playbook site.yml -t break
 ----
 
-[NOTE]
-====
-This command injects a resource constraint issue (low memory limits) and a storage constraint issue (minimal PVC size) into the Hub's content workers.
-====
-
----
-
 ### ✅ Steps to Resolution
 
 #### Step 1: Attempt Repository Sync and Check Pod Logs
 
 [.instruction]
 ====
-Initiate a sync job for the **"Community"** repository. Inspect the logs for the `hub-content` worker pods in your namespace for crash errors or disk-related messages.
+Initiate a sync job for the **"Community"** repository. Inspect the logs for the applicable Hub pods in your namespace for errors.
 ====
 
 [source,bash]
 ----
-oc logs -n aap-rh1 <failing-hub-content-pod-name>
+oc logs -n aap-rh1 <failing-hub-pod-name>
 ----
 
-#### Step 2: Implement Fixes (CR and PVC)
+#### Step 2: Implement Fixes
 
 [.instruction]
 ====
-Apply the necessary changes:
-1. Increase the resource limits for `hub.content` in the AAP CR.
-2. Increase the size of the related PVC (and update the CR for future deployments).
+Once you have diagnosed the issues, follow the specific resolution steps located in the solution document: **xref:scenario-5-solution.adoc[5.1. Solution: Automation Hub Issues]**
 ====
 
 #### Step 3: Verify Resolution
@@ -90,3 +81,11 @@ After applying the fixes and allowing reconciliation, attempt to sync the **"Com
 ====
 A successful synchronization job confirms the scenario is complete.
 ====
+
+---
+
+### 💡 Hint
+
+* The initial issue does not provide much valuable insight to the issue. Do a quick web search for your symptoms to find a KCS article on the issue.
+
+---

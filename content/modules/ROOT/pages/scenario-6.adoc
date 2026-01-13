@@ -1,5 +1,5 @@
 [#scenario-06,cols="3"]
-.Scenario #6: Automation Controller Execution Environment (EE) Failure
+.Scenario #6: Automation Controller Job Issues
 |===
 | **Mode** | **Components** | **Namespace**
 
@@ -12,16 +12,8 @@
 
 * Log in to the **AAP Gateway UI** successfully.
 * Launch the four available job templates and identify the failure.
-* Diagnose the root cause related to image pulling.
-* Resolve the underlying issue by correcting the job template configuration.
-
----
-
-### 💡 Hint
-
-* The failure occurs during the image pull phase. Review the logs for the specific **automation-job** pod that corresponds to the failed job template execution. The logs will indicate an authentication failure (`401 Unauthorized`) when pulling the **Execution Environment (EE)** image.
-
----
+* Diagnose the root cause
+* Resolve the underlying issue
 
 ### 🛠️ Prerequisites: Setup and Break
 
@@ -49,20 +41,13 @@ Execute the following command, then select **Scenario 6** when prompted.
 ansible-playbook site.yml -t break
 ----
 
-[NOTE]
-====
-This break modifies one job template to reference a private Execution Environment without the necessary container registry credentials.
-====
-
----
-
 ### ✅ Steps to Resolution
 
 #### Step 1: Launch Job Templates and Identify Failure
 
 [.instruction]
 ====
-In the Automation Controller UI, launch all four job templates and identify the one that fails immediately due to an image pull error.
+In the Automation Controller UI, launch all four job templates and identify the one that fails.
 ====
 
 #### Step 2: Inspect Job Pod Logs
@@ -77,16 +62,11 @@ Find the specific **automation-job** pod associated with the failed job and view
 oc logs -n aap-rh1 <automation-job-pod-name>
 ----
 
-[.output]
-====
-The logs will show a pull failure or authentication error when fetching the EE image from the registry (e.g., Quay).
-====
-
 #### Step 3: Implement the Fix
 
 [.instruction]
 ====
-Edit the failing job template in the Automation Controller UI to change the **Execution Environment** setting to one that is known to be accessible (e.g., the same EE used by the successful job templates).
+Edit the failing job template using the information you learned.
 ====
 
 #### Step 4: Verify Resolution
@@ -98,5 +78,5 @@ Launch the previously failing job template again.
 
 [.output]
 ====
-The job should now successfully pull the EE image and run to completion.
+The job should now successfully run.
 ====

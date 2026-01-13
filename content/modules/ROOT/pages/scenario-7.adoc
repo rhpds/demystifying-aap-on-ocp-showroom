@@ -3,7 +3,7 @@
 |===
 | **Mode** | **Components** | **Namespace**
 
-| Easy
+| Hard
 | Ansible Lightspeed Intelligent Assistant (ALIA)
 | `aap-rh1`
 |===
@@ -13,14 +13,13 @@
 * Log in to the **AAP Gateway UI** successfully.
 * Observe that the **ALIA** chat icon is missing.
 * Diagnose the underlying issue preventing the ALIA UI component from activating.
-* Resolve the issue by correcting the model configuration.
 
 ---
 
 ### 💡 Hint
 
 * The ALIA service requires a valid connection to a Large Language Model (LLM). Review the logs for the `lightspeed-api` and `chatbot` pods. Look for messages referencing **model names** or **authentication/access errors**.
-* The required model name is available on the **Lab Resource Page**.
+* The required model information is available on the **Lab Resource Page**.
 
 ---
 
