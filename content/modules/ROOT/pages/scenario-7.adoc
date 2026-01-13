@@ -20,9 +20,9 @@
 
 * The ALIA service requires a valid connection to a Large Language Model (LLM). Review the logs for the `lightspeed-api` and `chatbot` pods. Look for messages referencing **model names** or **authentication/access errors**.
 * The required model information is available below as well as on the **Lab Resource Page**.
-** Model API: {litellm_api_base_url}
-** Model API Key: {litellm_virtual_key}
-** Available Model: {litellm_available_models_list}
+** Model API: `{litellm_api_base_url}`
+** Model API Key: `{litellm_virtual_key}`
+** Available Model: `{litellm_available_models_list}`
 
 ---
 
