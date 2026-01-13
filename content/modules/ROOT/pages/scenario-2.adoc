@@ -84,7 +84,7 @@ Identify any Hub pods in a `Pending` state. Use the next step to find the reason
 
 [.instruction]
 ====
-**CLI Method:** Describe the failing Hub pod and PVC to find the specific scheduling or binding error.
+**CLI Method:** Describe the failing Hub pod and PVC to find the specific error.
 ====
 
 [source,bash]
@@ -97,7 +97,7 @@ oc describe pvc data-automation-hub -n scenario-2
 ====
 **UI Method:**
 1. Navigate to the detail page of the failing Hub pod.
-2. Scroll to the **Events** section to read the scheduler's error message (e.g., a failure to bind due to an access mode conflict).
+2. Scroll to the **Events** section to read the scheduler's error message.
 ====
 
 #### Step 3: Implement the Fix
@@ -111,7 +111,7 @@ Once you have diagnosed the issue, follow the specific resolution steps located 
 
 [.instruction]
 ====
-Monitor the namespace until the new PVC is bound and all Hub pods transition to a `Running` and ready state.
+Monitor the namespace until all Hub pods transition to a `Running` and ready state.
 ====
 
 [source,bash]
@@ -123,4 +123,4 @@ oc get pods -n scenario-2
 
 ### 💡 Hint
 
-* The failure is related to how the **Automation Hub** attempts to utilize storage. Review the pod events (`oc describe pod <failing-hub-pod>`) to see if there are errors related to binding a **Persistent Volume Claim (PVC)** or a **volume access mode** conflict. You need a storage class that supports **ReadWriteMany (RWX)**.
+* The failure is related to how the **Automation Hub** attempts to utilize storage. Review the pod events (`oc describe pod <failing-hub-pod>`) to see what errors are present.
