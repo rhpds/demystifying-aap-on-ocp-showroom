@@ -1,3 +1,5 @@
+# Scenario #5: Automation Hub Content Synchronization
+
 [#scenario-05,cols="3"]
 .Scenario #5: Automation Hub Content Synchronization
 |===
@@ -19,7 +21,7 @@
 
 ### 💡 Hint
 
-* Synchronization failures are often related to Hub pods. Use  OpenShift tooling (`oc` or `kubectl`) or the OpenShift Web UI to review the logs for the **Hub pods**.
+* Synchronization failures are often related to Hub pods. Use  OpenShift tooling (`oc`) or the OpenShift Web UI to review the logs for the **Hub pods**.
 
 ---
 

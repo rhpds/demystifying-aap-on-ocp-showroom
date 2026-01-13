@@ -1,3 +1,5 @@
+# Scenario #2: Automation Hub Issues
+
 [#scenario-02,cols="3"]
 .Scenario #2: Automation Hub Issues
 |===

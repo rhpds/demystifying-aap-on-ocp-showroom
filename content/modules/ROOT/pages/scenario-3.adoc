@@ -1,3 +1,5 @@
+# Scenario #3: Gateway Issues
+
 [#scenario-03,cols="3"]
 .Scenario #3: Gateway Issues
 |===

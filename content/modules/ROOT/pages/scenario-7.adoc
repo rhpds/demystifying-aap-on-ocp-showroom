@@ -1,5 +1,7 @@
+Scenario #7: Ansible Lightspeed Intelligent Assistant (ALIA) Issues
+
 [#scenario-07,cols="3"]
-.Scenario #7: Ansible Lightspeed Intelligent Assistant (ALIA) Failure
+.Scenario #7: Ansible Lightspeed Intelligent Assistant (ALIA) Issues
 |===
 | **Mode** | **Components** | **Namespace**
 

@@ -1,3 +1,5 @@
+# Scenario #4: Gateway Pod Issues
+
 [#scenario-04,cols="3"]
 .Scenario #4: Gateway Pod Issues
 |===

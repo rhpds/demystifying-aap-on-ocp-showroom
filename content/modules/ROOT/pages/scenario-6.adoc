@@ -1,3 +1,5 @@
+# Scenario #6: Automation Controller Job Issues
+
 [#scenario-06,cols="3"]
 .Scenario #6: Automation Controller Job Issues
 |===
