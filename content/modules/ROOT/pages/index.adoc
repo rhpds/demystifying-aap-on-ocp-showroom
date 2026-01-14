@@ -62,7 +62,7 @@ Establish an SSH connection to the lab's **Bastion Host** using the provided cre
 
 [source,bash]
 ----
-ssh {bastion_ssh_user_name}@{bastion_public_hostname} -p {bastion_ssh_port}
+{ssh_command}
 ----
 
 [NOTE]
