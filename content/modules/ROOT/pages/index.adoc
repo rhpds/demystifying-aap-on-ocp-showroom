@@ -62,7 +62,7 @@ To begin the learning lab, please complete the following setup and initializatio
 
 Establish an SSH connection to the lab's **Bastion Host** using the provided credentials.
 
-[source,bash]
+[source,bash,subs="attributes"]
 ----
 {ssh_command}
 ----
