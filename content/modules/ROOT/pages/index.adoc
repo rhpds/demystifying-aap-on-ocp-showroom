@@ -21,7 +21,6 @@ In this lab, we are going to dive deep into troubleshooting Ansible Automation P
 
 [TIP]
 ===
-.Bastion Host Pre-Configuration
 The Bastion Host has been pre-configured with:
 
 * The `oc` client (OpenShift CLI).
