@@ -58,11 +58,6 @@ Execute the following command, ensuring you replace the placeholder with the cor
 ansible-playbook site.yml -t break -e chatbot_token=`{litellm_virtual_key}`
 ----
 
-[NOTE]
-====
-This command sets the ALIA configuration to use an unauthorized or incorrect AI model.
-====
-
 ---
 
 ### ✅ Steps to Resolution
