@@ -94,6 +94,7 @@ Open the following URL in your browser:
 
 #### 2.2. Verify OpenShift CLI
 
+The bastion host is pre-authenticated to your cluster.
 Confirm that your `oc` (OpenShift CLI) connection is valid from the Bastion Host.
 
 [source,bash]
