@@ -16,9 +16,7 @@ Scenario #7: Ansible Lightspeed Intelligent Assistant (ALIA) Issues
 * Log in to the **AAP Gateway UI** successfully.
 * Observe that the **ALIA** chat icon is missing from the interface.
 +
-
 image::chat_icon.png[Reference of missing chat icon, width=317, align="left"]
-
 * Diagnose the underlying issue preventing the ALIA UI component from activating.
 * Resolve the issue(s) to restore the assistant.
 
