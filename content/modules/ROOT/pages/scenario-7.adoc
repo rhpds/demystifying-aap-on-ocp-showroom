@@ -57,7 +57,7 @@ Execute the following command, ensuring you replace the placeholder with the cor
 
 [source,bash,subs="attributes"]
 ----
-ansible-playbook site.yml -t break -e chatbot_token=`{litellm_virtual_key}`
+ansible-playbook site.yml -t break -e chatbot_token={litellm_virtual_key}
 ----
 
 ---
