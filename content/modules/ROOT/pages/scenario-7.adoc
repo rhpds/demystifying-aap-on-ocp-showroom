@@ -50,7 +50,7 @@ ansible-playbook site.yml -t deploy
 
 [.instruction]
 ====
-Execute the following command, ensuring you replace the placeholder with the correct token value from your Lab Resource Page. Select **Scenario 7** when prompted.
+Execute the following command, ensuring you include the correct Model API Key for the variable chatbot_token. Select **Scenario 7** when prompted.
 ====
 
 [source,bash,subs="attributes"]
