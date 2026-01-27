@@ -120,7 +120,8 @@ ansible-playbook site.yml
 
 [.output]
 ====
-You will be prompted to select a scenario. Select **xref:scenario-1.adoc[1 AAP Gateway Troubleshooting]** to begin the troubleshooting exercises.
+We are going to start on Scenario 2.
+You will be prompted to select a scenario. Select **xref:scenario-2.adoc[2 Automation Hub Issues]** to begin the troubleshooting exercises (Skip Scenario 2 for now)
 ====
 
 ---
