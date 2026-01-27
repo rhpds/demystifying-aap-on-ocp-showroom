@@ -58,7 +58,7 @@ The core troubleshooting workflow for each scenario is:
 
 To begin the learning lab, please complete the following setup and initialization steps:
 
-### 1. SSH into the Bastion Host
+### SSH into the Bastion Host
 
 Establish an SSH connection to the lab's **Bastion Host** using the provided credentials.
 
@@ -72,11 +72,11 @@ Establish an SSH connection to the lab's **Bastion Host** using the provided cre
 Use the following password when prompted: **{bastion_ssh_password}**
 ====
 
-### 2. Access OpenShift Cluster
+### Access OpenShift Cluster
 
 Access the cluster via the browser UI and confirm command-line access.
 
-#### 2.1. OpenShift UI Access
+#### OpenShift UI Access
 
 The cluster console is available at the following URL.
 
@@ -92,7 +92,7 @@ Open the following URL in your browser:
 * **Password:** {openshift_cluster_admin_password}
 ====
 
-#### 2.2. Verify OpenShift CLI
+#### Verify OpenShift CLI
 
 The bastion host is pre-authenticated to your cluster.
 Confirm that your `oc` (OpenShift CLI) connection is valid from the Bastion Host.
