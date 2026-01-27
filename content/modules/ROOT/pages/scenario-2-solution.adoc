@@ -50,7 +50,22 @@ Identify and delete the PVC associated with the Automation Hub.
 oc delete pvc -n scenario-2 scenario-2-hub-file-storage
 ----
 
-#### 3. Force Reconciliation
+#### 3. Delete the hub-api Deployment
+
+The current hub-api deployment is holding on to old information, it needs to be deleted
+
+[.instruction]
+====
+Identify and delete the deployment associated with the Automation Hub API.
+====
+
+[source,bash]
+----
+# Use the correct namespace for your deployment
+oc delete deployment -n scenario-2 scenario-2-hub-api
+----
+
+#### 4. Force Reconciliation
 
 Manually delete the key components that manage the Hub to trigger the Operator to recognize the change and provision the new PVC correctly.
 
@@ -64,8 +79,6 @@ Delete the Operator's manager pod and the Hub API Deployment.
 # 3a. Delete the Hub Operator manager pod
 oc delete pod -n scenario-2 <hub-operator-manager-pod-name> 
 
-# 3b. Delete the hub-api Deployment (if the operator hasn't done so already)
-oc delete deployment -n scenario-2 hub-api 
 ----
 
 #### 4. Verification

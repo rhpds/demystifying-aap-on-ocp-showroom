@@ -28,7 +28,7 @@ Execute the following command, then select **Scenario 2** when prompted.
 
 [source,bash]
 ----
-ansible-playbook site.yml -t deploy
+ansible-playbook site.yml
 ----
 
 #### 2. Introduce Failure (Break)
