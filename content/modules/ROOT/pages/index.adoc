@@ -124,7 +124,7 @@ You will be prompted to select a scenario. Select **xref:scenario-1.adoc[1 AAP G
 
 ---
 
-### 5. Download the AAP Manifest
+### Download the AAP Manifest
 
 You must transfer the AAP manifest from the Bastion Host to your local workstation to complete the registration steps later in the lab.
 
