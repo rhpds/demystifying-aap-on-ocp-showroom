@@ -18,7 +18,7 @@ The fix involves modifying the main **Ansible Automation Platform Custom Resourc
 
 #### 1. Modify the AAP Custom Resource
 
-Update the `spec.automationhub.storageClass` field in the `AnsibleAutomationPlatform` CR to use an RWX-compatible StorageClass available in your cluster (e.g., `ocs-external-storagecluster-cephfs`).
+Update the `spec.file_storage_storage_class` field in the `AutomationHub` CR to use an RWX-compatible StorageClass available in your cluster (e.g., `ocs-external-storagecluster-cephfs`).
 
 [.instruction]
 ====
@@ -31,7 +31,7 @@ Edit the AAP CR to change the StorageClass.
 spec:
   automationhub:
     ...
-    storageClass: ocs-external-storagecluster-cephfs
+      file_storage_storage_class: ocs-external-storagecluster-cephfs
     ...
 ----
 

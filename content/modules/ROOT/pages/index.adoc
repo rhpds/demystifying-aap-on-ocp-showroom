@@ -114,6 +114,7 @@ Execute the deployment command:
 
 [source,bash]
 ----
+cd rh1-aap-troubleshooting
 ansible-playbook site.yml
 ----
 
