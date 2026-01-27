@@ -103,7 +103,7 @@ oc whoami
 ----
 
 
-### 3. Deploy Initial Resources
+### Deploy Initial Resources
 
 Run the main Ansible playbook to deploy the core AAP resources and prepare the environment.
 
