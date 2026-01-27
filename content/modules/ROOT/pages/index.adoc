@@ -124,6 +124,26 @@ You will be prompted to select a scenario. Select **xref:scenario-1.adoc[1 AAP G
 
 ---
 
+### 5. Download the AAP Manifest
+
+You must transfer the AAP manifest from the Bastion Host to your local workstation to complete the registration steps later in the lab.
+
+[.instruction]
+====
+Execute the following `scp` command from a terminal on your **local machine** (not from within the Bastion SSH session).
+====
+
+[source,bash]
+----
+scp -P {bastion_ssh_port} {bastion_ssh_user_name}@{bastion_public_hostname}:/home/{bastion_ssh_user_name}/manifest_demystify_aap.zip .
+----
+
+[NOTE]
+====
+* Ensure you include the period (`.`) at the end of the command to signify the current directory as the destination.
+* Use the same password provided for your Bastion SSH access.
+====
+
 ++++
 <p style="text-align: center; font-size: 1.5em; margin-top: 2em;"><strong>Good luck and have fun!</strong></p>
 ++++
