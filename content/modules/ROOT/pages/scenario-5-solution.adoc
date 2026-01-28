@@ -68,12 +68,12 @@ The storage size of the *existing* PVC must be increased directly (requires a St
 
 [.instruction]
 ====
-Patch the `data-automation-hub` PVC to increase its size to `10Gi`.
+Patch the `aap-rh1-aap-hub-file-storage` PVC to increase its size to `10Gi`.
 ====
 
 [source,bash]
 ----
-oc edit pvc data-automation-hub -n aap-rh1 
+oc edit pvc aap-rh1-aap-hub-file-storage -n aap-rh1 
 # Manually change spec.resources.requests.storage to '10Gi'
 ----
 
