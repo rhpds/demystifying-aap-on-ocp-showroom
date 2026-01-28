@@ -50,11 +50,6 @@ spec:
     app.kubernetes.io/name: postgres-15     
 ----
 
-[source,bash]
-----
-oc apply -f postgres-service-fix.yaml -n aap-rh1
-----
-
 #### 2. Verification
 
 Wait for the application components (Controller, Web) to automatically re-establish connections now that the database service is available.
@@ -70,7 +65,7 @@ oc get pods -n aap-rh1
 ## 🛑 Problem 2: Incorrect Gateway Password
 
 ### Diagnosis
-The second issue was an incorrect password set for the internal **AAP Gateway** administration user (`admin`). This prevents authentication or successful handshakes.
+The second issue was an incorrect password set for the internal **AAP Gateway** administration user (`admin`). This prevents authentication.
 
 ### 🛠️ Resolution: Resetting the Gateway Password
 
@@ -78,6 +73,7 @@ The solution is to use the dedicated `aap-gateway-manage` utility provided withi
 
 #### 1. Execute the Management Command
 
+Open the terminal for the aap-rh1-aap-gateway pod. 
 Run the `aap-gateway-manage update_password` command from the appropriate environment.
 
 [source,bash]
