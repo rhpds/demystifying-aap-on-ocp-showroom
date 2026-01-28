@@ -13,7 +13,7 @@
 ### 📝 Objectives
 
 * Log in to the **AAP Gateway UI** successfully.
-* Navigate to the **Automation Hub** -> **Repositories** section.
+* Navigate to the **Automation Content (Automation Hub)** -> **Repositories** section.
 * Attempt to synchronize the built-in **"Community"** repository.
 * Diagnose and resolve the two underlying issues preventing successful synchronization.
 
