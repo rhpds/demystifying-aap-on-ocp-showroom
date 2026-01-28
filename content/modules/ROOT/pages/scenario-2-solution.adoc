@@ -29,10 +29,9 @@ Edit the AAP CR to change the StorageClass.
 ----
 # Example snippet of the modified AAP CR
 spec:
-  automationhub:
-    ...
-      file_storage_storage_class: ocs-external-storagecluster-cephfs
-    ...
+  ...
+    file_storage_storage_class: ocs-external-storagecluster-cephfs
+  ...
 ----
 
 #### 2. Delete the Old PVC
