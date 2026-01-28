@@ -48,7 +48,7 @@ The fix is to reduce the resource requirements defined in the API section of the
 
 #### 1. Modify the API Resource Requirements in the CR
 
-Reduce the values in `spec.automationhub.web.resource_requirements` (or the equivalent API section).
+Reduce the values in `spec.api.resource_requirements` (or the equivalent API section).
 
 [.instruction]
 ====
@@ -59,16 +59,14 @@ Reduce the resource requests and limits.
 ----
 # Example snippet of the modified AAP CR
 spec:
-  automationhub:
-    web:
-      ...
-      resource_requirements:
-        requests:
-          cpu: 1000m
-          memory: 500Mi
-        limits:
-          cpu: 2000m
-          memory: 5Gi
+  api:
+    resource_requirements:
+      requests:
+        cpu: 1000m
+        memory: 500Mi
+      limits:
+        cpu: 2000m
+        memory: 5Gi
       ...
 ----
 
