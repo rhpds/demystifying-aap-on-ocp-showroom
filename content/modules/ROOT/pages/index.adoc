@@ -155,7 +155,7 @@ You must transfer the AAP manifest from the Bastion Host to your local workstati
 Execute the following `scp` command from a terminal on your **local machine** (not from within the Bastion SSH session).
 ====
 
-[source,bash]
+[source,bash,subs="attributes"]
 ----
 scp -P {bastion_ssh_port} {bastion_ssh_user_name}@{bastion_public_hostname}:/home/{bastion_ssh_user_name}/manifest_demystify_aap.zip .
 ----
