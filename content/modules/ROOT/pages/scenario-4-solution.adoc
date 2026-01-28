@@ -78,10 +78,12 @@ After both CR modifications are applied, the Operator must reconcile the environ
 
 #### 1. Delete the Gateway Operator Manager Pod
 
-Manually delete the manager pod for the **Gateway Operator** to force it to reconcile the entire platform against the newly updated CR.
+Manually delete the postgres and manager pod for the **Gateway Operator** to force it to reconcile the entire platform against the newly updated CR.
 
 [source,bash]
 ----
+oc get pods
+oc delete pod -n aap-rh1 aap-rh1-aap-postgres-15-0
 oc delete pod -n aap-rh1 <gateway-operator-manager-pod-name>
 ----
 
