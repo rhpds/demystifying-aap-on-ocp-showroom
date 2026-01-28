@@ -15,51 +15,39 @@ The fix requires recreating the Kubernetes Service object. Crucially, the servic
 
 #### 1. Define and Apply the Missing Service
 
-Create a YAML file (e.g., `postgres-service-fix.yaml`) with the following definition. 
+Browse to Networking -> Service and create a new service with the following YAML:
 
 [source,yaml]
 ----
-    api_version: v1
-    kind: Service
-    name: "aap-rh1-aap-postgres-15"
-    namespace: aap-rh1 
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: "aap-rh1-aap-postgres-15"
-        namespace: aap-rh1
-        ownerReferences:
-          - apiVersion: aap.ansible.com/v1alpha1
-            kind: AnsibleAutomationPlatform
-            name: "aap-rh1-aap"
-            uid: "{{ aap_cr_info.resources[0].metadata.uid }}"
-        labels:
-          app.kubernetes.io/component: database
-          app.kubernetes.io/instance: "postgres-15-aap-rh1-aap"
-          app.kubernetes.io/managed-by: aap-gateway-operator
-          app.kubernetes.io/name: postgres-15
-      spec:
-        clusterIP: None
-        ipFamilies:
-          - IPv4
-        ports:
-          - name: '5432'
-            protocol: TCP
-            port: 5432
-            targetPort: 5432
-        internalTrafficPolicy: Cluster
-        clusterIPs:
-          - None
-        type: ClusterIP
-        ipFamilyPolicy: SingleStack
-        sessionAffinity: None
-        selector:
-          app.kubernetes.io/component: database
-          app.kubernetes.io/instance: "postgres-15-aap-rh1-aap"
-          app.kubernetes.io/managed-by: aap-gateway-operator
-          app.kubernetes.io/name: postgres-15     
+apiVersion: v1
+kind: Service
+metadata:
+  name: "aap-rh1-aap-postgres-15"
+  namespace: aap-rh1
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: "postgres-15-aap-rh1-aap"
+    app.kubernetes.io/managed-by: aap-gateway-operator
+    app.kubernetes.io/name: postgres-15
+spec:
+  clusterIP: None
+  ipFamilies:
+    - IPv4
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  internalTrafficPolicy: Cluster
+  clusterIPs:
+    - None
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: "postgres-15-aap-rh1-aap"
+    app.kubernetes.io/managed-by: aap-gateway-operator
+    app.kubernetes.io/name: postgres-15     
 ----
 
 [source,bash]
