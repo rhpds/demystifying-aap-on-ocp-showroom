@@ -90,7 +90,7 @@ Identify any Hub pods in a `Pending` state. Use the next step to find the reason
 [source,bash]
 ----
 oc describe pod <failing-hub-pod> -n scenario-2
-oc describe pvc data-automation-hub -n scenario-2
+oc describe pvc <hub-pvc-name> -n scenario-2
 ----
 
 [.instruction]
