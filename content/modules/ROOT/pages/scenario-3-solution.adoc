@@ -15,43 +15,56 @@ The fix requires recreating the Kubernetes Service object. Crucially, the servic
 
 #### 1. Define and Apply the Missing Service
 
-Create a YAML file (e.g., `postgres-service-fix.yaml`) with the following definition. **Note:** You must replace the placeholders (e.g., `{{ _scenario_name }}` and `{{ namespace }}`) with the actual values used in your environment.
+Create a YAML file (e.g., `postgres-service-fix.yaml`) with the following definition. 
 
 [source,yaml]
 ----
-api_version: v1
-kind: Service
-name: "{{ _scenario_name }}-aap-postgres-15"
-namespace: "{{ namespace }}" 
-state: present
-definition:
-  apiVersion: v1
-  kind: Service
-  metadata:
-    name: "{{ _scenario_name }}-aap-postgres-15"
-    namespace: "{{ namespace }}" 
-    ownerReferences:
-      - apiVersion: aap.ansible.com/v1alpha1
-        kind: AnsibleAutomationPlatform
-        name: "{{ _scenario_name }}-aap"
-        uid: "{{ aap_cr_info.resources[0].metadata.uid }}"
-    labels:
-      app.kubernetes.io/component: database
-      app.kubernetes.io/instance: "postgres-15-{{ _scenario_name }}-aap"
-      app.kubernetes.io/managed-by: aap-gateway-operator
-      app.kubernetes.io/name: postgres-15
-  spec:
-    # ... (rest of the spec definition)
-    selector:
-      app.kubernetes.io/component: database
-      app.kubernetes.io/instance: "postgres-15-{{ _scenario_name }}-aap"
-      app.kubernetes.io/managed-by: aap-gateway-operator
-      app.kubernetes.io/name: postgres-15
+    api_version: v1
+    kind: Service
+    name: "aap-rh1-aap-postgres-15"
+    namespace: aap-rh1 
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "aap-rh1-aap-postgres-15"
+        namespace: aap-rh1
+        ownerReferences:
+          - apiVersion: aap.ansible.com/v1alpha1
+            kind: AnsibleAutomationPlatform
+            name: "aap-rh1-aap"
+            uid: "{{ aap_cr_info.resources[0].metadata.uid }}"
+        labels:
+          app.kubernetes.io/component: database
+          app.kubernetes.io/instance: "postgres-15-aap-rh1-aap"
+          app.kubernetes.io/managed-by: aap-gateway-operator
+          app.kubernetes.io/name: postgres-15
+      spec:
+        clusterIP: None
+        ipFamilies:
+          - IPv4
+        ports:
+          - name: '5432'
+            protocol: TCP
+            port: 5432
+            targetPort: 5432
+        internalTrafficPolicy: Cluster
+        clusterIPs:
+          - None
+        type: ClusterIP
+        ipFamilyPolicy: SingleStack
+        sessionAffinity: None
+        selector:
+          app.kubernetes.io/component: database
+          app.kubernetes.io/instance: "postgres-15-aap-rh1-aap"
+          app.kubernetes.io/managed-by: aap-gateway-operator
+          app.kubernetes.io/name: postgres-15     
 ----
 
 [source,bash]
 ----
-oc apply -f postgres-service-fix.yaml -n {{ namespace }}
+oc apply -f postgres-service-fix.yaml -n aap-rh1
 ----
 
 #### 2. Verification
@@ -60,7 +73,7 @@ Wait for the application components (Controller, Web) to automatically re-establ
 
 [source,bash]
 ----
-oc get pods -n {{ namespace }}
+oc get pods -n aap-rh1
 # All pods should return to a 'Running' and 'Ready' state.
 ----
 
@@ -81,12 +94,12 @@ Run the `aap-gateway-manage update_password` command from the appropriate enviro
 
 [source,bash]
 ----
-aap-gateway-manage update_password --username admin --password
+aap-gateway-manage update_password --username admin --password $PASSWORD_VALUE_FROM_AAP_SECRET
 ----
 
 [NOTE]
 ====
-This command automatically sets the `admin` user's password to the value specified in the active AAP Custom Resource (CR).
+This command sets the `admin` user's password to the value specified in the active AAP Custom Resource (CR).
 ====
 
 #### 2. Final Verification
