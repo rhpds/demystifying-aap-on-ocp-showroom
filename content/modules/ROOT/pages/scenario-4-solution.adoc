@@ -19,7 +19,7 @@ The fix involves modifying the database configuration within the main **Ansible 
 You have two valid options:
 
 * **Option A: Specify a Valid Selector**
-    Replace the existing, incorrect `nodeSelector` with a valid label:
+    Replace the existing, incorrect `node_selector` with a valid label:
 
     [source,yaml]
     ----
@@ -32,7 +32,7 @@ You have two valid options:
     ----
 
 * **Option B: Remove the Selector**
-    Delete the `nodeSelector` field entirely from the database section of the CR to allow scheduling on any node.
+    Delete the `node_selector` field entirely from the database section of the CR to allow scheduling on any node.
 
 ---
 
