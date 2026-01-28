@@ -11,8 +11,6 @@ Welcome to the **Demystifying Ansible Automation Platform (AAP) on OpenShift Con
 
 In this lab, we are going to dive deep into troubleshooting Ansible Automation Platform deployments on OpenShift. You will work through practical exercises focused on the AAP Operator to help demonstrate where to look to find out what is going on with the deployment and how to fix some of the most common issues the Ansible SBR team encounters.
 
----
-
 [#environment]
 == 🖥️ Your Environment
 
@@ -29,29 +27,16 @@ The Bastion Host has been pre-configured with:
 * All other resources needed to complete the lab.
 ====
 
----
-
 [#scenarios]
 == 🧩 Lab Scenarios Overview
 
-You have **8 scenarios** to work through, covering each major component of Ansible Automation Platform:
+You have **6 scenarios** to work through, covering each major component of Ansible Automation Platform:
 
-* **Gateway**
-* **Automation Execution (Automation Controller)**
-* **Automation Content (Automation Hub)**
-* **Event-Driven Ansible (EDA)**
-* **Ansible Lightspeed Intelligent Assistant (ALIA)**
-
-### The Lab Workflow
-
-The core troubleshooting workflow for each scenario is:
-
-1. Run the playbook to **deploy** the scenario environment.
-2. Run the playbook to **break** the environment with a known issue.
-3. **Troubleshoot** the issue using logs, `oc describe`, and your existing knowledge.
-4. Once resolved (or if stuck), find the **solution** and run the playbook to **fix** the scenario.
-
----
+* Automation Gateway
+* Automation Execution (Automation Controller)
+* Automation Content (Automation Hub)
+* Automation Decisions (EDA Server)
+* Ansible Lightspeed Intelligent Assistant (ALIA)
 
 [#get-started]
 == 🚀 Getting Started
@@ -74,17 +59,10 @@ Use the following password when prompted: **{bastion_ssh_password}**
 
 ### Access OpenShift Cluster
 
-Access the cluster via the browser UI and confirm command-line access.
-
 #### OpenShift UI Access
 
-The cluster console is available at the following URL.
-
-[.instruction]
-====
 Open the following URL in your browser:
 **{openshift_console_url}**
-====
 
 [NOTE]
 ====
@@ -102,29 +80,71 @@ Confirm that your `oc` (OpenShift CLI) connection is valid from the Bastion Host
 oc whoami
 ----
 
-
-### Deploy Initial Resources
-
-Run the main Ansible playbook to deploy the core AAP resources and prepare the environment.
-
-[.instruction]
-====
-Execute the deployment command:
-====
+### Change into rh1-aap-troubleshooting directory
 
 [source,bash]
 ----
 cd rh1-aap-troubleshooting
+----
+
+### Deploy Scenario
+
+Execute the following commands to execute a scenario to deploy an Ansible Automation Platform environment. Be sure to type in the ID of the scenario when prompted.
+
+[source,bash]
+----
 ansible-playbook site.yml
 ----
 
+.Example Output
 [.output]
-====
-We are going to start on Scenario 2.
-You will be prompted to select a scenario. Select **xref:scenario-2.adoc[2 Automation Hub Issues]** to begin the troubleshooting exercises (Skip Scenario 2 for now)
-====
+----
+$ ansible-playbook site.yml
 
----
+ID: 2
+Path: roles/scenario_2
+Description: Automation Content (Private Automation Hub) Issues
+
+ID: 3
+Path: roles/scenario_3
+Description: Gateway Issues
+
+ID: 4
+Path: roles/scenario_4
+Description: Different Gateway issues
+
+ID: 5
+Path: roles/scenario_5
+Description: Automation Content (Private Automation Hub) Sync Issues
+
+ID: 6
+Path: roles/scenario_6
+Description: Automation Execution (Controller) Issues
+
+ID: 7
+Path: roles/scenario_7
+Description: Ansible Lightspeed Intelligent Assistant (ALIA) Issues
+
+Enter the ID corresponding to your choice:
+----
+
+### Fix Scenario
+
+Execute the following command if you would like to fix the scenario breakage. Be sure to type in the ID of the scenario when prompted.
+
+[source,bash]
+----
+ansible-playbook site.yml -t fix
+----
+
+### Delete Scenario
+
+Execute the following command if you would like to delete the scenario and start again. Be sure to type in the ID of the scenario when prompted.
+
+[source,bash]
+----
+ansible-playbook site.yml -t delete
+----
 
 ### Download the AAP Manifest
 
