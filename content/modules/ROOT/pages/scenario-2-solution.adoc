@@ -18,11 +18,13 @@ The fix involves modifying the main **Ansible Automation Platform Custom Resourc
 
 #### 1. Modify the AAP Custom Resource
 
+If you don't specify a storage class, the operator will use the cluster default storage class. In this case the defualt storage class is RWO storage, Automtaion Hub required RWX storage.
+
 Update the `spec.file_storage_storage_class` field in the `AutomationHub` CR to use an RWX-compatible StorageClass available in your cluster (e.g., `ocs-external-storagecluster-cephfs`).
 
 [.instruction]
 ====
-Edit the AAP CR to change the StorageClass.
+Edit the AAP CR to add the file_storage_storage_class.
 ====
 
 [source,yaml]
@@ -76,6 +78,7 @@ Delete the Operator's manager pod and the Hub API Deployment.
 [source,bash]
 ----
 # 3a. Delete the Hub Operator manager pod
+oc get pods -n scenario-2
 oc delete pod -n scenario-2 <hub-operator-manager-pod-name> 
 
 ----
