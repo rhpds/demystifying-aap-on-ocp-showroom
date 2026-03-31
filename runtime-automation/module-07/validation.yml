@@ -1,0 +1,103 @@
+---
+# runtime-automation/module-07/validation.yml
+# Module 7: Lightspeed Issues
+
+- name: Get namespace aap-rh1
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_namespace
+
+- name: Get chatbot configuration secret
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/secrets/chatbot-configuration-secret"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_chatbot_secret
+
+- name: Decode model name from secret
+  ansible.builtin.set_fact:
+    model_name: "{{ r_chatbot_secret.json.data.model_name | b64decode }}"
+  when:
+    - r_chatbot_secret.status == 200
+    - r_chatbot_secret.json.data.model_name is defined
+
+- name: Get Lightspeed API pods
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_all_pods
+
+- name: Filter for Lightspeed API pods
+  ansible.builtin.set_fact:
+    lightspeed_api_pods: >-
+      {{
+        r_all_pods.json.items | selectattr('metadata.name', 'match', '.*lightspeed-api-.*') | list
+        if r_all_pods.status == 200
+        else []
+      }}
+
+- name: Check for Running Lightspeed API pods
+  ansible.builtin.set_fact:
+    running_lightspeed_pods: >-
+      {{ lightspeed_api_pods | selectattr('status.phase', 'equalto', 'Running') | list }}
+
+- name: Check for CrashLoopBackOff pods
+  ansible.builtin.set_fact:
+    crashing_pods: >-
+      {{
+        lightspeed_api_pods | selectattr('status.containerStatuses', 'defined') |
+        map(attribute='status.containerStatuses') | flatten |
+        selectattr('state.waiting.reason', 'defined') |
+        selectattr('state.waiting.reason', 'equalto', 'CrashLoopBackOff') | list
+      }}
+
+- name: Evaluate checks
+  ansible.builtin.set_fact:
+    namespace_exists: "{{ r_namespace.status == 200 }}"
+    correct_model: "{{ model_name | default('') == 'granite-3-2-8b-instruct' }}"
+    lightspeed_running: >-
+      {{
+        (running_lightspeed_pods | length > 0) and
+        (crashing_pods | length == 0)
+      }}
+
+- name: Set validation output    
+  ansible.builtin.set_fact:
+    validation_output: |
+      Module 7: Lightspeed Issues
+      ============================
+      {{ '[OK]' if namespace_exists else '[X] ' }} Namespace aap-rh1 exists
+      {{ '[OK]' if correct_model else '[X] ' }} Chatbot secret model name is granite-3-2-8b-instruct (current: {{ model_name | default('not set') }})
+      {{ '[OK]' if lightspeed_running else '[X] ' }} Lightspeed API pod Running ({{ running_lightspeed_pods | length }} pods, {{ crashing_pods | length }} crashing)
+    validation_passed: >-
+      {{
+        namespace_exists and
+        correct_model and
+        lightspeed_running
+      }}
+
+- name: Write failure details
+  ansible.builtin.copy:
+    content: "{{ validation_output }}"
+    dest: "{{ job_info_dir }}/validation_failure.out"
+  delegate_to: localhost
+  when:
+    - job_info_dir is defined
+    - not validation_passed | bool
+
+- name: Fail if not passed
+  ansible.builtin.fail:
+    msg: "Complete the missing tasks and try again."
+  when: not validation_passed | bool

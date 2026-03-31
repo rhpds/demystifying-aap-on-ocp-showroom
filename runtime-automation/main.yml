@@ -1,0 +1,22 @@
+---
+# =============================================================================
+# Runtime Automation Entry Point
+# =============================================================================
+#
+# This playbook is the entry point for all runtime-automation calls from the
+# Showroom UI. The ansible-runner container invokes this with env vars:
+#   - module_directory: path to the module directory (e.g., module-02)
+#   - module_stage: either "validation" or "solve"
+#
+# It routes the call to the appropriate module's validation.yml or solve.yml.
+#
+# =============================================================================
+
+- name: Run module stage via direct API calls
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Include module tasks
+      ansible.builtin.include_tasks: "{{ module_dir | default(module_directory | default('')) }}/{{ module_stage }}.yml"

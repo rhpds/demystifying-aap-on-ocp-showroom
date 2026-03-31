@@ -6,6 +6,38 @@ default_width: 30
 # Persist the URL state so browser refresh doesn't reset the UI
 persist_url_state: true
 
+# Runtime automation - enable Next/Solve buttons for all scenarios
+modules:
+  - id: scenario-2
+    name: "Scenario #2: Automation Hub Issues"
+    validation: runtime-automation/module-02
+    solve: runtime-automation/module-02
+
+  - id: scenario-3
+    name: "Scenario #3: Gateway Issues"
+    validation: runtime-automation/module-03
+    solve: runtime-automation/module-03
+
+  - id: scenario-4
+    name: "Scenario #4: Gateway Memory Issues"
+    validation: runtime-automation/module-04
+    solve: runtime-automation/module-04
+
+  - id: scenario-5
+    name: "Scenario #5: Automation Hub Memory/Storage Issues"
+    validation: runtime-automation/module-05
+    solve: runtime-automation/module-05
+
+  - id: scenario-6
+    name: "Scenario #6: Automation Controller Job Issues"
+    validation: runtime-automation/module-06
+    solve: runtime-automation/module-06
+
+  - id: scenario-7
+    name: "Scenario #7: Ansible Lightspeed (ALIA) Issues"
+    validation: runtime-automation/module-07
+    solve: runtime-automation/module-07
+
 # tabs:
   # OCP Console
   # - name: OCP Console

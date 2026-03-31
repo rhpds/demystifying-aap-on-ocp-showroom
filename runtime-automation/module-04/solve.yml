@@ -1,0 +1,71 @@
+---
+# runtime-automation/module-04/solve.yml
+# Module 4: Gateway Pod Issues - Solver
+
+- name: Get AnsibleAutomationPlatform CR
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+  register: r_aap_cr
+
+- name: Set CR name
+  ansible.builtin.set_fact:
+    aap_cr_name: "{{ r_aap_cr.json.items[0].metadata.name }}"
+  when: r_aap_cr.json.items | length > 0
+
+- name: Patch AAP CR to increase memory
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms/{{ aap_cr_name }}"
+    method: PATCH
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+      Content-Type: "application/merge-patch+json"
+    body_format: json
+    body:
+      spec:
+        api:
+          resource_requirements:
+            limits:
+              memory: "1Gi"
+            requests:
+              memory: "750Mi"
+    validate_certs: false
+    status_code: [200, 201]
+
+- name: Get PostgreSQL StatefulSet
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/apis/apps/v1/namespaces/aap-rh1/statefulsets?labelSelector=app.kubernetes.io%2Fname%3Dpostgres"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+  register: r_postgres_sts
+
+- name: Delete PostgreSQL StatefulSet
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/apis/apps/v1/namespaces/aap-rh1/statefulsets/{{ item.metadata.name }}"
+    method: DELETE
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 202, 404]
+  loop: "{{ r_postgres_sts.json.items }}"
+  when: r_postgres_sts.json.items | length > 0
+
+- name: Show completion message
+  ansible.builtin.copy:
+    content: |
+      [INFO]
+      [OK] Module 4 solved
+
+      Fixed:
+      - Increased API memory to 1Gi
+      - Deleted PostgreSQL StatefulSet (operator will recreate)
+
+      Pods should restart automatically. Click Next to validate.
+    dest: "{{ job_info_dir }}/validation_failure.out"
+  delegate_to: localhost
+  when: job_info_dir is defined

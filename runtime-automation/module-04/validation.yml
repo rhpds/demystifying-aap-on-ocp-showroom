@@ -1,0 +1,98 @@
+---
+# runtime-automation/module-04/validation.yml
+# Module 4: Gateway Pod Issues
+
+- name: Get namespace aap-rh1
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_namespace
+
+- name: Get AnsibleAutomationPlatform CR
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_aap_cr
+
+- name: Check API memory limits
+  ansible.builtin.set_fact:
+    api_memory_limit: >-
+      {{
+        r_aap_cr.json.items[0].spec.api.resource_requirements.limits.memory | default('0Gi')
+        if r_aap_cr.json.items | length > 0
+        else '0Gi'
+      }}
+
+- name: Get PostgreSQL pods
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Dpostgres"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_postgres_pods
+
+- name: Get Gateway pods
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Daap-gateway"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_gateway_pods
+
+- name: Evaluate checks
+  ansible.builtin.set_fact:
+    namespace_exists: "{{ r_namespace.status == 200 }}"
+    memory_increased: "{{ api_memory_limit is version('1Gi', '>=') }}"
+    postgres_running: >-
+      {{
+        r_postgres_pods.status == 200 and
+        r_postgres_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+      }}
+    gateway_running: >-
+      {{
+        r_gateway_pods.status == 200 and
+        r_gateway_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+      }}
+
+- name: Set validation output
+  ansible.builtin.set_fact:
+    validation_output: |
+      Module 4: Gateway Pod Issues
+      =============================
+      {{ '[OK]' if namespace_exists else '[X] ' }} Namespace aap-rh1 exists
+      {{ '[OK]' if memory_increased else '[X] ' }} API memory limit ≥ 1Gi (current: {{ api_memory_limit }})
+      {{ '[OK]' if postgres_running else '[X] ' }} PostgreSQL pod Running
+      {{ '[OK]' if gateway_running else '[X] ' }} Gateway pod Running
+    validation_passed: >-
+      {{
+        namespace_exists and
+        memory_increased and
+        postgres_running and
+        gateway_running
+      }}
+
+- name: Write failure details
+  ansible.builtin.copy:
+    content: "{{ validation_output }}"
+    dest: "{{ job_info_dir }}/validation_failure.out"
+  delegate_to: localhost
+  when:
+    - job_info_dir is defined
+    - not validation_passed | bool
+
+- name: Fail if not passed
+  ansible.builtin.fail:
+    msg: "Complete the missing tasks and try again."
+  when: not validation_passed | bool

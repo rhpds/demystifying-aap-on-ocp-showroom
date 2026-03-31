@@ -1,0 +1,270 @@
+---
+# runtime-automation/module-02/validation.yml
+# Module 2: Automation Hub Storage Issues
+
+- name: Get namespace scenario-2
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/scenario-2"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_namespace
+
+- name: Get AutomationHub CR
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/apis/automationhub.ansible.com/v1beta1/namespaces/scenario-2/automationhubs"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_ah_cr
+
+- name: Get PVCs in scenario-2
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/scenario-2/persistentvolumeclaims?labelSelector=app.kubernetes.io%2Fcomponent%3Dstorage"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_pvcs
+
+- name: Get pods in scenario-2
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/scenario-2/pods"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_pods
+
+- name: Evaluate checks
+  ansible.builtin.set_fact:
+    namespace_exists: "{{ r_namespace.status == 200 }}"
+    storage_class_set: >-
+      {{
+        r_ah_cr.status == 200 and
+        r_ah_cr.json.items | length > 0 and
+        r_ah_cr.json.items[0].spec.file_storage_storage_class is defined and
+        r_ah_cr.json.items[0].spec.file_storage_storage_class | length > 0
+      }}
+    pvc_bound: >-
+      {{
+        r_pvcs.status == 200 and
+        r_pvcs.json.items | selectattr('status.phase', 'equalto', 'Bound') | list | length > 0
+      }}
+    hub_pods_running: >-
+      {{
+        r_pods.status == 200 and
+        r_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length
+      }}
+
+- name: Set validation output
+  ansible.builtin.set_fact:
+    validation_output: |
+      Module 2: Automation Hub Storage
+      =================================
+      {{ '[OK]' if namespace_exists else '[X] ' }} Namespace scenario-2 exists
+      {{ '[OK]' if storage_class_set else '[X] ' }} AutomationHub CR has file_storage_storage_class set
+      {{ '[OK]' if pvc_bound else '[X] ' }} Hub file storage PVC is Bound
+      {{ '[OK]' if (hub_pods_running | int) > 0 else '[X] ' }} Hub pods Running ({{ hub_pods_running | default(0) }} pods)
+    validation_passed: >-
+      {{
+        namespace_exists and
+        storage_class_set and
+        pvc_bound and
+        (hub_pods_running | int) > 0
+      }}
+
+- name: Write failure details
+  ansible.builtin.copy:
+    content: "{{ validation_output }}"
+    dest: "{{ job_info_dir }}/validation_failure.out"
+  delegate_to: localhost
+  when:
+    - job_info_dir is defined
+    - not validation_passed | bool
+
+- name: Fail if not passed
+  ansible.builtin.fail:
+    msg: "Complete the missing tasks and try again."
+  when: not validation_passed | bool                                                                                                                                                                           
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+brthomas@brthomas-mac module-02 % cat validation.yml | head -10
+brthomas@brthomas-mac module-02 % vi validation.yaml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   }}"
+      validate_certs: false
+      status_code: [200, 404]
+    register: r_pods
+
+  - name: Evaluate checks
+    ansible.builtin.set_fact:
+      namespace_exists: "{{ r_namespace.status == 200 }}"
+      storage_class_set: >-
+        {{
+          r_ah_cr.status == 200 and
+          r_ah_cr.json.items | length > 0 and
+          r_ah_cr.json.items[0].spec.file_storage_storage_class is defined and
+          r_ah_cr.json.items[0].spec.file_storage_storage_class | length > 0
+        }}
+      pvc_bound: >-
+        {{
+          r_pvcs.status == 200 and
+          r_pvcs.json.items | selectattr('status.phase', 'equalto', 'Bound') | list | length > 0
+        }}
+      hub_pods_running: >-
+        {{
+          r_pods.status == 200 and
+          r_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length
+        }}
+
+  - name: Set validation output
+    ansible.builtin.set_fact:
+      validation_output: |
+        Module 2: Automation Hub Storage
+        =================================
+        {{ '[OK]' if namespace_exists else '[X] ' }} Namespace scenario-2 exists
+        {{ '[OK]' if storage_class_set else '[X] ' }} AutomationHub CR has file_storage_storage_class
+  set
+        {{ '[OK]' if pvc_bound else '[X] ' }} Hub file storage PVC is Bound
+        {{ '[OK]' if (hub_pods_running | int) > 0 else '[X] ' }} Hub pods Running ({{ hub_pods_running
+  | default(0) }} pods)
+      validation_passed: >-
+        {{
+          namespace_exists and
+          storage_class_set and
+          pvc_bound and
+          (hub_pods_running | int) > 0
+        }}
+
+  - name: Write failure details
+    ansible.builtin.copy:
+      content: "{{ validation_output }}"
+      dest: "{{ job_info_dir }}/validation_failure.out"
+    delegate_to: localhost
+    when:
+      - job_info_dir is defined
+      - not validation_passed | bool
+
+  - name: Fail if not passed
+    ansible.builtin.fail:
+      msg: "Complete the missing tasks and try again."
+    when: not validation_passed | bool
