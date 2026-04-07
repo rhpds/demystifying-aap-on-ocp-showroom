@@ -6,37 +6,50 @@ default_width: 30
 # Persist the URL state so browser refresh doesn't reset the UI
 persist_url_state: true
 
-# Runtime automation - enable Next/Solve buttons for all scenarios
-modules:
-  - id: scenario-2
-    name: "Scenario #2: Automation Hub Issues"
-    validation: runtime-automation/module-02
-    solve: runtime-automation/module-02
+# Runtime automation - enable validation/solve for FTL testing
+antora:
+  modules:
+    - name: module-02
+      label: "Scenario #2: Automation Hub Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
 
-  - id: scenario-3
-    name: "Scenario #3: Gateway Issues"
-    validation: runtime-automation/module-03
-    solve: runtime-automation/module-03
+    - name: module-03
+      label: "Scenario #3: Gateway Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
 
-  - id: scenario-4
-    name: "Scenario #4: Gateway Memory Issues"
-    validation: runtime-automation/module-04
-    solve: runtime-automation/module-04
+    - name: module-04
+      label: "Scenario #4: Gateway Memory Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
 
-  - id: scenario-5
-    name: "Scenario #5: Automation Hub Memory/Storage Issues"
-    validation: runtime-automation/module-05
-    solve: runtime-automation/module-05
+    - name: module-05
+      label: "Scenario #5: Automation Hub Memory/Storage Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
 
-  - id: scenario-6
-    name: "Scenario #6: Automation Controller Job Issues"
-    validation: runtime-automation/module-06
-    solve: runtime-automation/module-06
+    - name: module-06
+      label: "Scenario #6: Automation Controller Job Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
 
-  - id: scenario-7
-    name: "Scenario #7: Ansible Lightspeed (ALIA) Issues"
-    validation: runtime-automation/module-07
-    solve: runtime-automation/module-07
+    - name: module-07
+      label: "Scenario #7: Ansible Lightspeed (ALIA) Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
 
 # tabs:
   # OCP Console
