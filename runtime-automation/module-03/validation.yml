@@ -2,101 +2,93 @@
 # runtime-automation/module-03/validation.yml
 # Module 3: Gateway Issues
 
-- name: Validate Module 3 - Gateway Service
-  hosts: localhost
-  gather_facts: false
-  tasks:
-    - name: Get namespace aap-rh1
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-        validate_certs: false
-        status_code: [200, 404]
-      register: r_namespace
+- name: Get namespace aap-rh1
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_namespace
 
-    - name: Get AnsibleAutomationPlatform CR
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-        validate_certs: false
-        status_code: [200, 404]
-      register: r_aap_cr
+- name: Get AnsibleAutomationPlatform CR
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_aap_cr
 
-    - name: Set resource names
-      ansible.builtin.set_fact:
-        aap_cr_name: "{{ r_aap_cr.json.items[0].metadata.name }}"
-        postgres_service_name: "{{ r_aap_cr.json.items[0].metadata.name }}-aap-postgres-15"
-      when:
-        - r_aap_cr.status == 200
-        - r_aap_cr.json.items | length > 0
+- name: Set postgres service name
+  ansible.builtin.set_fact:
+    postgres_service_name: "{{ r_aap_cr.json.items[0].metadata.name }}-aap-postgres-15"
+  when:
+    - r_aap_cr.status == 200
+    - r_aap_cr.json.items | length > 0
 
-    - name: Get PostgreSQL Service
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/services/{{ postgres_service_name }}"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-        validate_certs: false
-        status_code: [200, 404]
-      register: r_postgres_service
-      when: postgres_service_name is defined
+- name: Get PostgreSQL Service
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/services/{{ postgres_service_name | default('') }}"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_postgres_svc
+  when: postgres_service_name is defined
 
-    - name: Get Gateway pods
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fcomponent%3Dgateway"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-        validate_certs: false
-        status_code: [200, 404]
-      register: r_gateway_pods
+- name: Get Gateway pods
+  ansible.builtin.uri:
+    url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Daap-gateway"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    validate_certs: false
+    status_code: [200, 404]
+  register: r_gateway_pods
 
-    - name: Evaluate checks
-      ansible.builtin.set_fact:
-        namespace_exists: "{{ r_namespace.status == 200 }}"
-        postgres_service_exists: "{{ r_postgres_service.status == 200 if r_postgres_service is defined else false }}"
-        gateway_pod_ready: >-
-          {{
-            r_gateway_pods.status == 200 and
-            r_gateway_pods.json.items | selectattr('status.phase', 'equalto', 'Running') |
-            selectattr('status.conditions', 'defined') |
-            map(attribute='status.conditions') | flatten |
-            selectattr('type', 'equalto', 'Ready') |
-            selectattr('status', 'equalto', 'True') | list | length > 0
-          }}
+- name: Evaluate checks
+  ansible.builtin.set_fact:
+    namespace_exists: "{{ r_namespace.status == 200 }}"
+    postgres_svc_exists: "{{ r_postgres_svc.status | default(404) == 200 }}"
+    gateway_pods_ready: >-
+      {{
+        r_gateway_pods.status == 200 and
+        r_gateway_pods.json.items | selectattr('status.containerStatuses', 'defined') |
+        selectattr('status.containerStatuses', 'length', 2) |
+        map(attribute='status.containerStatuses') | flatten |
+        selectattr('ready', 'equalto', true) | list | length == 2
+      }}
 
-    - name: Calculate validation result
-      ansible.builtin.set_fact:
-        validation_passed: >-
-          {{
-            namespace_exists | bool and
-            postgres_service_exists | bool and
-            gateway_pod_ready | bool
-          }}
+- name: Set validation output
+  ansible.builtin.set_fact:
+    validation_output: |
+      Module 3: Gateway Issues
+      ========================
+      {{ '[OK]' if namespace_exists else '[X] ' }} Namespace aap-rh1 exists
+      {{ '[OK]' if postgres_svc_exists else '[X] ' }} PostgreSQL Service exists
+      {{ '[OK]' if gateway_pods_ready else '[X] ' }} Gateway pod running with 2/2 containers ready
+    validation_passed: >-
+      {{
+        namespace_exists and
+        postgres_svc_exists and
+        gateway_pods_ready
+      }}
 
-    - name: Set validation output
-      ansible.builtin.set_fact:
-        validation_output: |
-          Module 3: Gateway Service
-          =========================
-          {{ '[OK]' if namespace_exists else '[X] ' }} Namespace aap-rh1 exists
-          {{ '[OK]' if postgres_service_exists else '[X] ' }} PostgreSQL Service exists
-          {{ '[OK]' if gateway_pod_ready else '[X] ' }} Gateway pod is Ready
+- name: Write failure details
+  ansible.builtin.copy:
+    content: "{{ validation_output }}"
+    dest: "{{ job_info_dir }}/validation_failure.out"
+  delegate_to: localhost
+  when:
+    - job_info_dir is defined
+    - not validation_passed | bool
 
-    - name: Write validation output
-      ansible.builtin.copy:
-        content: "{{ validation_output }}"
-        dest: "{{ job_info_dir }}/validation_failure.out"
-      delegate_to: localhost
-      when:
-        - job_info_dir is defined
-        - not validation_passed | bool
+- name: Fail if not passed
+  ansible.builtin.fail:
+    msg: "Complete the missing tasks and try again."
+  when: not validation_passed | bool
 
-    - name: Fail if not passed
-      ansible.builtin.fail:
-        msg: "Complete the missing tasks and try again."
-      when: not validation_passed | bool
