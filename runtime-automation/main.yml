@@ -4,7 +4,7 @@
 # =============================================================================
 #
 # This playbook is the entry point for all runtime-automation calls from the
-# Showroom ansible-runner API. The runner invokes this with env vars:
+# Showroom UI. The ansible-runner container invokes this with env vars:
 #   - module_directory: path to the module directory (e.g., module-02)
 #   - module_stage: either "validation" or "solve"
 #
@@ -17,22 +17,6 @@
   connection: local
   gather_facts: false
 
-  vars:
-    _module_dir: "{{ module_dir | default(module_directory | default('')) }}"
-
-    # Common AAP credentials (can be overridden by secrets.yaml)
-    aap_host: "https://{{ lookup('env', 'GUID') }}-controller-aap-rh1.{{ lookup('env', 'DOMAIN') }}"
-    aap_username: "admin"
-    aap_password: "{{ lookup('env', 'AAP_ADMIN_PASSWORD') | default('', true) }}"
-
-    # OpenShift cluster info
-    ingress_domain: "{{ lookup('env', 'DOMAIN') }}"
-    cluster_guid: "{{ lookup('env', 'GUID') }}"
-
   tasks:
-    - name: Load secrets (vault-decrypted via VAULT_PASSWORD env var)
-      ansible.builtin.include_vars: secrets.yaml
-      ignore_errors: true
-
     - name: Include module tasks
-      ansible.builtin.include_tasks: "{{ _module_dir }}/{{ module_stage }}.yml"
+      ansible.builtin.include_tasks: "{{ module_dir | default(module_directory | default('')) }}/{{ module_stage }}.yml"
