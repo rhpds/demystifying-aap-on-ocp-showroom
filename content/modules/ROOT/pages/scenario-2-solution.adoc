@@ -1,93 +1,90 @@
-= 💡 Scenario #2: Solutions and Resolution
+= 💡 Solution: Scenario 2 — Gateway & Controller Issues
 
-This page provides the detailed solution for the issue presented in Scenario #2. Review these steps after you have attempted the diagnosis and resolution yourself.
+This page provides the detailed solutions for the issues presented in Scenario 2. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 
-## 🛑 Problem: Missing ReadWriteMany (RWX) Storage Class
+== 🛑 Problem 1: Missing Database Service
 
-### Diagnosis
+=== Diagnosis
 
-The Automation Hub pods were failing due to an inability to provision or mount the required **Persistent Volume Claim (PVC)**. In a typical HA deployment, multiple Hub pods need to access the same storage simultaneously, which requires a storage type that supports the **ReadWriteMany (RWX)** access mode. 
+The core issue was that the Kubernetes *Service* object for the PostgreSQL database was missing. Without a service, other components cannot resolve or connect to the database pods, causing widespread connectivity failures across the AAP stack.
 
-The original StorageClass was set to a type that only supports **ReadWriteOnce (RWO)**, causing PVC binding and pod scheduling failures.
+=== 🛠️ Resolution: Recreating the Database Service
 
-### 🛠️ Resolution: Updating the Storage Class
+The fix requires recreating the Kubernetes Service object. Crucially, the service must contain specific metadata to prevent the Operator from immediately deleting it as an "unmanaged" resource.
 
-The fix involves modifying the main **Ansible Automation Platform Custom Resource (CR)** to specify a valid RWX-capable StorageClass, followed by manually forcing a clean reconciliation.
+==== 1. Define and Apply the Missing Service
 
-#### 1. Modify the AAP Custom Resource
-
-If you don't specify a storage class, the operator will use the cluster default storage class. In this case the defualt storage class is RWO storage, Automtaion Hub required RWX storage.
-
-Update the `spec.file_storage_storage_class` field in the `AutomationHub` CR to use an RWX-compatible StorageClass available in your cluster (e.g., `ocs-external-storagecluster-cephfs`).
-
-[.instruction]
-====
-Edit the AAP CR to add the file_storage_storage_class.
-====
+In the *OpenShift Console*, navigate to *Networking → Services* in your namespace and create a new service. Click *Create Service* and replace the default YAML with the following, substituting `{username}` with your actual username (visible in your AAP URL and resource names):
 
 [source,yaml]
 ----
-# Example snippet of the modified AAP CR
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{username}-aap-postgres-15"
+  namespace: "{username}-scenario-2"
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: "postgres-15-{username}-aap"
+    app.kubernetes.io/managed-by: aap-gateway-operator
+    app.kubernetes.io/name: postgres-15
 spec:
-  ...
-    file_storage_storage_class: ocs-external-storagecluster-cephfs
-  ...
+  clusterIP: None
+  ipFamilies:
+    - IPv4
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  internalTrafficPolicy: Cluster
+  clusterIPs:
+    - None
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: "postgres-15-{username}-aap"
+    app.kubernetes.io/managed-by: aap-gateway-operator
+    app.kubernetes.io/name: postgres-15
 ----
 
-#### 2. Delete the Old PVC
+==== 2. Verification
 
-The existing PVC created with the incorrect StorageClass must be deleted so the Operator can provision a new one.
+Monitor *Workloads → Pods*. Once the service is recreated, the application components (Controller, Web) will automatically re-establish connections to the database, and all pods should return to a `Running` and `Ready` state.
 
-[.instruction]
-====
-Identify and delete the PVC associated with the Automation Hub.
-====
+---
+
+== 🛑 Problem 2: Incorrect Gateway Password
+
+=== Diagnosis
+
+The second issue was an incorrect password set for the internal *AAP Gateway* administration user (`admin`). This prevents authentication into the AAP UI.
+
+=== 🛠️ Resolution: Resetting the Gateway Password
+
+The solution is to use the dedicated `aap-gateway-manage` utility provided within the Gateway pod to reset the password back to the value defined in the AAP CR.
+
+==== 1. Execute the Management Command
+
+In the *OpenShift Console*, navigate to *Workloads → Pods*, find the `{username}-aap-gateway` pod and open its *Terminal* tab.
+
+First, retrieve the correct password from *Workloads → Secrets* — look for the `{username}-aap-admin-password` secret and note its value.
+
+Then run the following command in the pod terminal:
 
 [source,bash]
 ----
-# Use the correct namespace for your deployment
-oc delete pvc -n scenario-2 scenario-2-hub-file-storage
+aap-gateway-manage update_password --username admin --password <password-from-secret>
 ----
 
-#### 3. Delete the hub-api Deployment
-
-The current hub-api deployment is holding on to old information, it needs to be deleted
-
-[.instruction]
+[NOTE]
 ====
-Identify and delete the deployment associated with the Automation Hub API.
+This command sets the `admin` user's password to the value specified in the active AAP Custom Resource (CR).
 ====
 
-[source,bash]
-----
-# Use the correct namespace for your deployment
-oc delete deployment -n scenario-2 scenario-2-hub-api
-----
+==== 2. Final Verification
 
-#### 4. Force Reconciliation
-
-Manually delete the key components that manage the Hub to trigger the Operator to recognize the change and provision the new PVC correctly.
-
-[.instruction]
-====
-Delete the Operator's manager pod and the Hub API Deployment.
-====
-
-[source,bash]
-----
-# 3a. Delete the Hub Operator manager pod
-oc get pods -n scenario-2
-oc delete pod -n scenario-2 <hub-operator-manager-pod-name> 
-
-----
-
-#### 4. Verification
-
-Monitor the namespace. The Operator will provision a new PVC, redeploy the `hub-api` Deployment, and the Hub pods will successfully mount the volume and transition to a `Running` and `Ready` state.
-
-[source,bash]
-----
-oc get pods -n scenario-2
-----
+Log in to the *AAP UI* to confirm full access is restored.

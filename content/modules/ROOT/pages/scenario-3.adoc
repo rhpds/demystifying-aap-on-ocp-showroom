@@ -1,17 +1,17 @@
-= Scenario 2: Gateway & Controller Issues
+= Scenario 3: Node Selector & Resource Issues
 
 [cols="3",options="header"]
 |===
 | Difficulty | Components | Break Type
-| Hard | Automation Controller, Gateway | Two distinct issues
+| Easy / Medium | Gateway | Two distinct issues
 |===
 
 == Objectives
 
 * Log in to the *AAP Gateway UI*.
-* Observe connectivity failures.
-* Diagnose two separate issues.
-* Resolve both issues to restore full functionality.
+* Observe multiple core components failing to deploy or stabilize.
+* Diagnose two distinct issues.
+* Resolve both issues.
 
 == Troubleshooting
 
@@ -19,32 +19,22 @@
 
 Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template. Wait for it to complete before proceeding.
 
-=== Step 2: Attempt to Log In to AAP
-
-Use the *Ansible Automation Platform* tab on the right. Try to log in with your credentials. Note any errors or unexpected behavior.
-
-=== Step 2: Inspect Pod Logs
+=== Step 2: Inspect Failing Pods
 
 Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
 
-Identify any failing pods and click through to review their *Logs* and *Events* tabs for error messages.
+Identify pods that are not reaching a `Running` state. Click on each failing pod and review the *Events* tab — the scheduler messages will point you toward the root cause.
 
-Navigate to *Networking → Services* and check for any missing or misconfigured services.
+=== Step 3: Fix the Issues
 
-=== Step 4: Fix the First Issue
+Once you have identified both issues, apply the fixes through the OpenShift Console.
 
-Once you have identified the first issue, apply the fix.
+Refer to the solution page if needed: xref:scenario-3-solution.adoc[Solution: Node Selector & Resource Issues]
 
-Refer to the solution page if needed: xref:scenario-3-solution.adoc[Solution: Gateway & Controller Issues]
+=== Step 4: Verify
 
-=== Step 5: Fix the Second Issue
-
-Log back into AAP after resolving the first issue. Review pod logs again to identify the second issue and resolve it.
-
-=== Step 6: Verify
-
-Confirm all pods are running and ready, and that you can successfully log into the AAP UI.
+Confirm all pods are running and ready, then successfully log into the AAP UI.
 
 == Hint
 
-There are two independent issues. Focus on discovering *what* is wrong rather than knowing the fix upfront — check pod logs and service configurations. Once you have identified an issue, check the solution page to apply the fix, then move on to the second issue.
+There are two issues. Try to identify both before checking the solution. Use *Describe* on the failing pods in the OpenShift Console — the events section will tell you exactly why the scheduler cannot place them.

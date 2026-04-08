@@ -1,55 +1,44 @@
-= 💡 Scenario #6: Solutions and Resolution
+= 💡 Solution: Scenario 6 — ALIA Lightspeed Issues
 
-This page provides the detailed solution for the issue presented in Scenario #6, which involves an Execution Environment image pull failure due to authentication issues.
+This page provides the detailed solution for the issue presented in Scenario 6, which involves an incorrect Large Language Model (LLM) configuration for Ansible Lightspeed Intelligent Assistant (ALIA).
 
 ---
 
-## 🛑 Problem: Missing Execution Environment Credential
+== 🛑 Problem: Invalid Large Language Model (LLM) Configuration
 
-### Diagnosis
+=== Diagnosis
 
-One of the job templates was configured to use an **Execution Environment (EE)** image hosted in a private container registry (e.g., a Quay repository). The job failed because the necessary **Container Registry Credential** was not linked to the job template, resulting in an image pull failure.
+The *Ansible Lightspeed Intelligent Assistant (ALIA)* service was unable to initialize because it was configured to use a model that it was not authorized to access (`codellama-7b-instruct`). This prevents the ALIA UI component from being activated.
 
-The error message in the `automation-job` pod logs confirms the authentication failure.
+The pod logs for the `lightspeed-api` and `chatbot` pods confirm the model connection or authentication failure.
 
-### 🛠️ Resolution: Switching the Execution Environment
+=== 🛠️ Resolution: Updating the Chatbot Secret
 
-The solution is to modify the failing job template to reference an Execution Environment that is properly authenticated or publicly accessible.
+The configuration for the LLM is stored within the `chatbot-configuration-secret`. The fix is to edit this secret and replace the unauthorized model name with the correct one: `{alia_model}`.
 
-#### 1. Identify and Edit the Failing Job Template
+==== 1. Update the Chatbot Configuration Secret
 
-[.instruction]
-====
-Log in to the **Automation Controller UI** and navigate to the **Job Templates**. Select the template that failed execution.
-====
+In the *OpenShift Console*, navigate to *Workloads → Secrets* in your namespace. Find `chatbot-configuration-secret`, open it and click *Edit*.
 
-#### 2. Change the Execution Environment
+Update the `chatbot_model` value to the correct model name:
 
-[.instruction]
-====
-Edit the job template configuration and switch the **Execution Environment** field.
-====
-
-[source]
+[source,yaml]
 ----
-# The Fix:
-Switch the assigned Execution Environment to match the image being successfully used by the other job templates.
+data:
+  chatbot_model: {alia_model}  # <--- CORRECT VALUE
 ----
 
-[NOTE]
+[IMPORTANT]
 ====
-The failing template was likely using an EE from a private Quay repo without a matching credential. Switching it to a known good EE resolves the authentication gap.
-====
-
-#### 3. Verification
-
-[.instruction]
-====
-Save the configuration and launch the job template again.
+Make sure you are editing the `chatbot_model` key specifically. If using the *Key/Value* editor, the console handles base64 encoding automatically. If editing raw YAML, the value must be base64-encoded.
 ====
 
-[source]
-----
-# Expected Result
-The job will successfully start, confirming the EE is now pulled correctly.
-----
+==== 2. Force Reconciliation
+
+The *Lightspeed Operator* must restart to pick up the changes from the secret.
+
+In the *OpenShift Console*, navigate to *Workloads → Pods* in your namespace. Delete the `lightspeed-api` and `lightspeed-chatbot-api` pods. They will restart automatically and pick up the corrected configuration.
+
+==== 3. Verification
+
+Monitor *Workloads → Pods* until the Lightspeed pods are running and ready. Then log back into the AAP UI — the ALIA chat icon should reappear in the top navigation bar and respond to a test query.

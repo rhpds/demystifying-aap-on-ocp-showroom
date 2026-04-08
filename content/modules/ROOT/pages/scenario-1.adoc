@@ -1,0 +1,40 @@
+= Scenario 1: Automation Hub Storage Issue
+
+[cols="3",options="header"]
+|===
+| Difficulty | Components | Break Type
+| Easy | Automation Hub | Storage configuration
+|===
+
+== Objectives
+
+* Verify the health of the *Automation Hub* pods.
+* Diagnose and resolve a storage-related failure preventing Hub from starting.
+
+== Troubleshooting
+
+=== Step 1: Inspect Hub Pods
+
+Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
+
+Look for Hub-related pods stuck in a `Pending` state.
+
+=== Step 2: Investigate the Failure Reason
+
+Click on a failing Hub pod and review the *Events* tab. The error message will indicate why the pod cannot be scheduled.
+
+Navigate to *Storage → PersistentVolumeClaims* and inspect the status of the Hub PVC to confirm your diagnosis.
+
+=== Step 3: Fix the Issue
+
+Once you have identified the root cause, apply the fix through the OpenShift Console.
+
+Refer to the solution page if you need guidance: xref:scenario-1-solution.adoc[Solution: Automation Hub Storage Issue]
+
+=== Step 4: Verify
+
+Monitor the namespace until all Hub pods transition to a `Running` and `Ready` state.
+
+== Hint
+
+The failure is related to how Automation Hub uses storage. Review the pod events to understand what the scheduler is reporting, then look at the storage access mode requirements for Automation Hub.

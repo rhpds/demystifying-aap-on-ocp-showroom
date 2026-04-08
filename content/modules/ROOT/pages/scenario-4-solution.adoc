@@ -1,92 +1,34 @@
-= 💡 Scenario #4: Solutions and Resolution
+= 💡 Solution: Scenario 4 — Execution Environment Credentials
 
-This page provides the detailed solutions for the issues presented in Scenario #4. Review these steps after you have attempted the diagnosis and resolution yourself.
-
----
-
-## 🛑 Problem 1: Database Pod Scheduling Failure
-
-### Diagnosis
-
-The **PostgreSQL Database** pods were unable to be scheduled because they had an invalid `nodeSelector` assigned in the CR.  The scheduler could not find any node matching the criteria.
-
-### 🛠️ Resolution: Correcting Node Scheduling
-
-The fix involves modifying the database configuration within the main **Ansible Automation Platform Custom Resource (CR)**.
-
-#### 1. Modify the Database Configuration in the CR
-
-You have two valid options:
-
-* **Option A: Specify a Valid Selector**
-    Replace the existing, incorrect `node_selector` with a valid label:
-
-    [source,yaml]
-    ----
-    spec:
-      database:
-        ...
-        nodeSelector:
-          kubernetes.io/os: linux
-        ...
-    ----
-
-* **Option B: Remove the Selector**
-    Delete the `node_selector` field entirely from the database section of the CR to allow scheduling on any node.
+This page provides the detailed solution for the issue presented in Scenario 4. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 
-## 🛑 Problem 2: API Pod Resource Exhaustion
+== 🛑 Problem: Missing Execution Environment Credential
 
-### Diagnosis
+=== Diagnosis
 
-The **API** pods were failing due to oversized resource requests and limits defined in the CR. The requests exceeded the available node or cluster resources, preventing pod startup.
+One of the job templates was configured to use an *Execution Environment (EE)* image hosted in a private container registry (e.g., a Quay repository). The job failed because the necessary *Container Registry Credential* was not linked to the job template, resulting in an image pull failure.
 
-### 🛠️ Resolution: Reducing Resource Requirements
+The error message in the failed job's output confirms the authentication failure when attempting to pull the EE image.
 
-The fix is to reduce the resource requirements defined in the API section of the CR to values that are manageable and realistic. 
+=== 🛠️ Resolution: Switching the Execution Environment
 
-#### 1. Modify the API Resource Requirements in the CR
+The solution is to modify the failing job template to reference an Execution Environment that is properly authenticated or publicly accessible.
 
-Reduce the values in `spec.api.resource_requirements` (or the equivalent API section).
+==== 1. Identify and Edit the Failing Job Template
 
-[.instruction]
+In the *AAP UI*, navigate to *Automation Execution → Templates*. Select the template that failed execution.
+
+==== 2. Change the Execution Environment
+
+Edit the job template configuration and switch the *Execution Environment* field to match the image being successfully used by the other job templates.
+
+[NOTE]
 ====
-Reduce the resource requests and limits.
+The failing template was using an EE from a private Quay repository without a matching credential. Switching it to a known good EE resolves the authentication gap.
 ====
 
-[source,yaml]
-----
-# Example snippet of the modified AAP CR
-spec:
-  api:
-    resource_requirements:
-      requests:
-        cpu: 1000m
-        memory: 500Mi
-      limits:
-        cpu: 2000m
-        memory: 5Gi
-      ...
-----
+==== 3. Verification
 
----
-
-## ♻️ Final Reconciliation
-
-After both CR modifications are applied, the Operator must reconcile the environment.
-
-#### 1. Delete the Gateway Operator Manager Pod
-
-Manually delete the postgres and manager pod for the **Gateway Operator** to force it to reconcile the entire platform against the newly updated CR.
-
-[source,bash]
-----
-oc get pods
-oc delete pod -n aap-rh1 aap-rh1-aap-postgres-15-0
-oc delete pod -n aap-rh1 <gateway-operator-manager-pod-name>
-----
-
-#### 2. Verification
-
-Monitor the namespace until the Database and API pods are successfully redeployed and running.
+Save the configuration and launch the job template again. The job will successfully start, confirming the EE image is now pulled correctly.

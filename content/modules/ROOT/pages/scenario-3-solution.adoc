@@ -1,91 +1,75 @@
-= 💡 Scenario #3: Solutions and Resolution
+= 💡 Solution: Scenario 3 — Node Selector & Resource Issues
 
-This page provides the detailed solutions for the issues presented in Scenario #3. Review these steps after you have attempted the diagnosis and resolution yourself.
+This page provides the detailed solutions for the issues presented in Scenario 3. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 
-## 🛑 Problem 1: Missing Database Service
+== 🛑 Problem 1: Database Pod Scheduling Failure
 
-### Diagnosis
-The core issue was that the Kubernetes **Service** object for the PostgreSQL database (`<scenario-name>-aap-postgres-15`) was missing. Without a service, other components cannot resolve or connect to the database pods.
+=== Diagnosis
 
-### 🛠️ Resolution: Recreating the Database Service
+The *PostgreSQL Database* pods were unable to be scheduled because they had an invalid `nodeSelector` assigned in the CR. The scheduler could not find any node matching the criteria, so the pods remained in a `Pending` state indefinitely.
 
-The fix requires recreating the Kubernetes Service object. Crucially, the service must contain specific metadata (like `ownerReferences`) to prevent the Operator from immediately deleting it as an "unmanaged" resource.
+=== 🛠️ Resolution: Correcting Node Scheduling
 
-#### 1. Define and Apply the Missing Service
+The fix involves modifying the database configuration within the main *Ansible Automation Platform Custom Resource (CR)*.
 
-Browse to Networking -> Service and create a new service with the following YAML:
+==== 1. Modify the Database Configuration in the CR
+
+In the *OpenShift Console*, navigate to *Operators → Installed Operators → Ansible Automation Platform* and open your AAP instance. Switch to the *YAML* view.
+
+You have two valid options:
+
+* *Option A: Specify a Valid Selector* — Replace the incorrect `nodeSelector` with a valid label:
++
+[source,yaml]
+----
+spec:
+  database:
+    nodeSelector:
+      kubernetes.io/os: linux
+----
+
+* *Option B: Remove the Selector* — Delete the `nodeSelector` field entirely from the database section of the CR to allow scheduling on any available node.
+
+---
+
+== 🛑 Problem 2: API Pod Resource Exhaustion
+
+=== Diagnosis
+
+The *API* pods were failing due to oversized resource requests and limits defined in the CR. The requests exceeded the available node or cluster resources, preventing pod startup.
+
+=== 🛠️ Resolution: Reducing Resource Requirements
+
+The fix is to reduce the resource requirements defined in the API section of the CR to values that are manageable and realistic.
+
+==== 1. Modify the API Resource Requirements in the CR
+
+Still in the AAP CR *YAML* view, reduce the values in the Controller resource requirements:
 
 [source,yaml]
 ----
-apiVersion: v1
-kind: Service
-metadata:
-  name: "aap-rh1-aap-postgres-15"
-  namespace: aap-rh1
-  labels:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/instance: "postgres-15-aap-rh1-aap"
-    app.kubernetes.io/managed-by: aap-gateway-operator
-    app.kubernetes.io/name: postgres-15
+# Example snippet of the modified AAP CR
 spec:
-  clusterIP: None
-  ipFamilies:
-    - IPv4
-  ports:
-    - protocol: TCP
-      port: 5432
-      targetPort: 5432
-  internalTrafficPolicy: Cluster
-  clusterIPs:
-    - None
-  type: ClusterIP
-  ipFamilyPolicy: SingleStack
-  sessionAffinity: None
-  selector:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/instance: "postgres-15-aap-rh1-aap"
-    app.kubernetes.io/managed-by: aap-gateway-operator
-    app.kubernetes.io/name: postgres-15     
-----
-
-#### 2. Verification
-
-Wait for the application components (Controller, Web) to automatically re-establish connections now that the database service is available.
-
-[source,bash]
-----
-oc get pods -n aap-rh1
-# All pods should return to a 'Running' and 'Ready' state.
+  controller:
+    resource_requirements:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
 ----
 
 ---
 
-## 🛑 Problem 2: Incorrect Gateway Password
+== ♻️ Final Reconciliation
 
-### Diagnosis
-The second issue was an incorrect password set for the internal **AAP Gateway** administration user (`admin`). This prevents authentication.
+After both CR modifications are applied, the Operator must reconcile the environment.
 
-### 🛠️ Resolution: Resetting the Gateway Password
+In the *OpenShift Console*, navigate to *Workloads → Pods* in your namespace. Delete the database pod (`{username}-aap-postgres-15-0`) and the Gateway Operator manager pod to force a full reconciliation against the updated CR.
 
-The solution is to use the dedicated `aap-gateway-manage` utility provided within the environment to reset the password back to the value defined in the Ansible Automation Platform Custom Resource (CR).
+=== Verification
 
-#### 1. Execute the Management Command
-
-Open the terminal for the aap-rh1-aap-gateway pod. 
-Run the `aap-gateway-manage update_password` command from the appropriate environment.
-
-[source,bash]
-----
-aap-gateway-manage update_password --username admin --password $PASSWORD_VALUE_FROM_AAP_SECRET
-----
-
-[NOTE]
-====
-This command sets the `admin` user's password to the value specified in the active AAP Custom Resource (CR).
-====
-
-#### 2. Final Verification
-
-Log in to the **AAP UI** to confirm full access.
+Monitor *Workloads → Pods* until the database and API pods are successfully redeployed and running. Then log into AAP to confirm full functionality.

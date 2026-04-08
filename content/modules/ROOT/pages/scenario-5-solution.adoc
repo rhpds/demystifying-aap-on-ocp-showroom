@@ -1,27 +1,22 @@
-= 💡 Scenario #5: Solutions and Resolution
+= 💡 Solution: Scenario 5 — Automation Hub Sync Issues
 
-This page provides the detailed solutions for the issues presented in Scenario #5, specifically resource and storage constraints during Automation Hub synchronization.
+This page provides the detailed solutions for the issues presented in Scenario 5, specifically resource and storage constraints during Automation Hub synchronization.
 
 ---
 
-## 🛑 Problem 1: Insufficient Resource Limits for Content Pods
+== 🛑 Problem 1: Insufficient Resource Limits for Content Pods
 
-### Diagnosis
+=== Diagnosis
 
-The **Automation Hub Content** worker pods were being terminated (likely `OOMKilled`) during the resource-intensive synchronization process because the defined memory limits were too low.
+The *Automation Hub Content* worker pods were being terminated (likely `OOMKilled`) during the resource-intensive synchronization process because the defined memory limits were too low.
 
-### 🛠️ Resolution: Increasing Content Resource Limits
+=== 🛠️ Resolution: Increasing Content Resource Limits
 
-The fix is to increase the resource requests and limits for the **Hub Content** workers directly in the main **Ansible Automation Platform Custom Resource (CR)**.
+The fix is to increase the resource requests and limits for the *Hub Content* workers directly in the main *Ansible Automation Platform Custom Resource (CR)*.
 
-#### 1. Update the AAP Custom Resource
+==== 1. Update the AAP Custom Resource
 
-Modify the `spec.hub.content.resource_requirements` section of the CR.
-
-[.instruction]
-====
-Edit the AAP CR to increase the `limits` to accommodate content sync.
-====
+In the *OpenShift Console*, navigate to *Operators → Installed Operators → Ansible Automation Platform* and open your AAP instance. Switch to the *YAML* view and modify the `spec.hub.content.resource_requirements` section:
 
 [source,yaml]
 ----
@@ -40,43 +35,34 @@ spec:
 
 ---
 
-## 🛑 Problem 2: Insufficient Persistent Volume Claim (PVC) Size
+== 🛑 Problem 2: Insufficient Persistent Volume Claim (PVC) Size
 
-### Diagnosis
+=== Diagnosis
 
 Synchronization failed because the PVC for file storage was too small (e.g., `25Mi`), which cannot hold the repository's contents.
 
-### 🛠️ Resolution: Increasing PVC Storage Size
+=== 🛠️ Resolution: Increasing PVC Storage Size
 
 The fix involves increasing the requested storage size on both the CR and the existing PVC.
 
-#### 1. Update the AAP Custom Resource (Future PVCs)
+==== 1. Update the AAP Custom Resource (Future PVCs)
 
-Update the CR to ensure future PVCs use the correct size.
+Still in the AAP CR *YAML* view, update the Hub file storage size so future PVCs use the correct size:
 
 [source,yaml]
 ----
 # Example snippet of the modified AAP CR
 spec:
-  automationhub:
-    hub_file_storage_size: 10Gi # Increase this value
+  hub:
+    file_storage_size: 10Gi # Increase this value
 ----
 
-#### 2. Manually Patch the Existing PVC
+==== 2. Expand the Existing PVC
 
-The storage size of the *existing* PVC must be increased directly (requires a StorageClass that supports volume expansion).
+The storage size of the *existing* PVC must also be increased directly, as the CR change only affects future PVCs (this requires a StorageClass that supports volume expansion — `ocs-external-storagecluster-cephfs` supports this).
 
-[.instruction]
-====
-Patch the `aap-rh1-aap-hub-file-storage` PVC to increase its size to `10Gi`.
-====
+In the *OpenShift Console*, navigate to *Storage → PersistentVolumeClaims* in your namespace. Find the Hub file storage PVC, open it, switch to the *YAML* view and manually change `spec.resources.requests.storage` to `10Gi`.
 
-[source,bash]
-----
-oc edit pvc aap-rh1-aap-hub-file-storage -n aap-rh1 
-# Manually change spec.resources.requests.storage to '10Gi'
-----
+==== 3. Final Verification
 
-#### 3. Final Verification
-
-Attempt the **"Community"** repository sync again in the UI. A successful sync confirms the resolution.
+Attempt the *Community* repository sync again in the AAP UI. A successful sync confirms the resolution.

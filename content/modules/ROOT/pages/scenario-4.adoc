@@ -1,17 +1,17 @@
-= Scenario 3: Node Selector & Resource Issues
+= Scenario 4: Execution Environment Credentials
 
 [cols="3",options="header"]
 |===
 | Difficulty | Components | Break Type
-| Easy / Medium | Gateway | Two distinct issues
+| Easy | Automation Controller | Execution Environment / Credentials
 |===
 
 == Objectives
 
-* Log in to the *AAP Gateway UI*.
-* Observe multiple core components failing to deploy or stabilize.
-* Diagnose two distinct issues.
-* Resolve both issues.
+* Log in to the *AAP Gateway UI* successfully.
+* Launch the available job templates and identify the one that fails.
+* Diagnose the root cause.
+* Resolve the underlying issue.
 
 == Troubleshooting
 
@@ -19,22 +19,28 @@
 
 Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template. Wait for it to complete before proceeding.
 
-=== Step 2: Inspect Failing Pods
+=== Step 2: Launch Job Templates and Identify the Failure
 
-Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
+In the AAP UI, navigate to *Automation Execution → Templates*. Launch the available job templates one by one and observe which one fails.
 
-Identify pods that are not reaching a `Running` state. Click on each failing pod and review the *Events* tab — the scheduler messages will point you toward the root cause.
+Review the job output to understand the error message.
 
-=== Step 3: Fix the Issues
+=== Step 3: Inspect the Failed Job
 
-Once you have identified both issues, apply the fixes through the OpenShift Console.
+Click into the failed job run and review its output in detail. The error will indicate what is wrong with the Execution Environment or credentials configuration.
 
-Refer to the solution page if needed: xref:scenario-4-solution.adoc[Solution: Node Selector & Resource Issues]
+You can also check the *OpenShift Console → Workloads → Pods* to find the automation job pod and review its logs.
 
-=== Step 4: Verify
+=== Step 4: Fix the Issue
 
-Confirm all pods are running and ready, then successfully log into the AAP UI.
+Edit the failing job template in the AAP UI to correct the configuration.
+
+Refer to the solution page if needed: xref:scenario-4-solution.adoc[Solution: Execution Environment Credentials]
+
+=== Step 5: Verify
+
+Re-launch the previously failing job template and confirm it now runs successfully.
 
 == Hint
 
-There are two issues. Try to identify both before checking the solution. Use *Describe* on the failing pods in the OpenShift Console — the events section will tell you exactly why the scheduler cannot place them.
+The failure is in how the job template is configured — specifically something related to the Execution Environment or its associated credentials. The job output will give you a clear error message to work from.

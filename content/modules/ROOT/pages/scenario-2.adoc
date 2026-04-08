@@ -1,40 +1,50 @@
-= Scenario 1: Automation Hub Storage Issue
+= Scenario 2: Gateway & Controller Issues
 
 [cols="3",options="header"]
 |===
 | Difficulty | Components | Break Type
-| Easy | Automation Hub | Storage configuration
+| Hard | Automation Controller, Gateway | Two distinct issues
 |===
 
 == Objectives
 
-* Verify the health of the *Automation Hub* pods.
-* Diagnose and resolve a storage-related failure preventing Hub from starting.
+* Log in to the *AAP Gateway UI*.
+* Observe connectivity failures.
+* Diagnose two separate issues.
+* Resolve both issues to restore full functionality.
 
 == Troubleshooting
 
-=== Step 1: Inspect Hub Pods
+=== Step 1: Run the Break Scenario Job
+
+Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template. Wait for it to complete before proceeding.
+
+=== Step 2: Attempt to Log In to AAP
+
+Use the *Ansible Automation Platform* tab on the right. Try to log in with your credentials. Note any errors or unexpected behavior.
+
+=== Step 2: Inspect Pod Logs
 
 Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
 
-Look for Hub-related pods stuck in a `Pending` state.
+Identify any failing pods and click through to review their *Logs* and *Events* tabs for error messages.
 
-=== Step 2: Investigate the Failure Reason
+Navigate to *Networking → Services* and check for any missing or misconfigured services.
 
-Click on a failing Hub pod and review the *Events* tab. The error message will indicate why the pod cannot be scheduled.
+=== Step 4: Fix the First Issue
 
-Navigate to *Storage → PersistentVolumeClaims* and inspect the status of the Hub PVC to confirm your diagnosis.
+Once you have identified the first issue, apply the fix.
 
-=== Step 3: Fix the Issue
+Refer to the solution page if needed: xref:scenario-2-solution.adoc[Solution: Gateway & Controller Issues]
 
-Once you have identified the root cause, apply the fix through the OpenShift Console.
+=== Step 5: Fix the Second Issue
 
-Refer to the solution page if you need guidance: xref:scenario-2-solution.adoc[Solution: Automation Hub Storage Issue]
+Log back into AAP after resolving the first issue. Review pod logs again to identify the second issue and resolve it.
 
-=== Step 4: Verify
+=== Step 6: Verify
 
-Monitor the namespace until all Hub pods transition to a `Running` and `Ready` state.
+Confirm all pods are running and ready, and that you can successfully log into the AAP UI.
 
 == Hint
 
-The failure is related to how Automation Hub uses storage. Review the pod events to understand what the scheduler is reporting, then look at the storage access mode requirements for Automation Hub.
+There are two independent issues. Focus on discovering *what* is wrong rather than knowing the fix upfront — check pod logs and service configurations. Once you have identified an issue, check the solution page to apply the fix, then move on to the second issue.
