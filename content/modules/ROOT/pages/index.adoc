@@ -67,7 +67,7 @@ You have been assigned *Scenario {scenario}*. Each scenario presents a broken AA
 == How the Lab Works
 
 . *Your environment is already deployed.* AAP is running on OpenShift in a namespace dedicated to you.
-. *The facilitator introduces the break.* The facilitator will run the *Break Scenario* job template in your AAP Controller before you start troubleshooting. This applies the failure for your assigned scenario.
+. *You introduce the break.* For scenarios 2-6, log into AAP and run the *Break Scenario* job template in the Controller. This applies the failure for your scenario. For scenario 1, the environment is already broken — no action needed.
 . *You investigate and fix the issue.* Use the AAP UI and OpenShift Console to diagnose the problem and restore full functionality.
 . *Refer to the solution page* if you need guidance after attempting the diagnosis yourself.
 
