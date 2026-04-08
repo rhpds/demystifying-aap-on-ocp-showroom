@@ -61,7 +61,7 @@ spec:
 
 The storage size of the *existing* PVC must also be increased directly, as the CR change only affects future PVCs (this requires a StorageClass that supports volume expansion; `ocs-external-storagecluster-cephfs` supports this).
 
-In the *OpenShift Console*, navigate to *Storage → PersistentVolumeClaims* in your namespace. Find the Hub file storage PVC, open it, switch to the *YAML* view and manually change `spec.resources.requests.storage` to `10Gi`.
+In the *OpenShift Console*, navigate to *Storage → PersistentVolumeClaims* and select your namespace. Find the Hub file storage PVC, open it, switch to the *YAML* view, change `spec.resources.requests.storage` to `10Gi`, and click *Save*.
 
 ==== 3. Final verification
 

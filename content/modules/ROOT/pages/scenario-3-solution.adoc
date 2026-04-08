@@ -68,7 +68,11 @@ spec:
 
 After both CR modifications are applied, the Operator must reconcile the environment.
 
-In the *OpenShift Console*, navigate to *Workloads → Pods* in your namespace. Delete the database pod (`{username}-aap-postgres-15-0`) and the Gateway Operator manager pod to force a full reconciliation against the updated CR.
+In the *OpenShift Console*, navigate to *Workloads → Pods* and select your namespace.
+
+Find the database pod (`{username}-aap-postgres-15-0`), click the three-dot menu on the right, and select *Delete Pod*.
+
+Then find the Gateway Operator manager pod (`aap-gateway-operator-controller-manager-...`), click the three-dot menu, and select *Delete Pod*.
 
 === Verification
 

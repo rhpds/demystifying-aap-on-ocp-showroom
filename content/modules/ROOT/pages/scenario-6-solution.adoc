@@ -37,7 +37,7 @@ Make sure you are editing the `chatbot_model` key specifically. If using the *Ke
 
 The *Lightspeed Operator* must restart to pick up the changes from the secret.
 
-In the *OpenShift Console*, navigate to *Workloads → Pods* in your namespace. Delete the `lightspeed-api` and `lightspeed-chatbot-api` pods. They will restart automatically and pick up the corrected configuration.
+In the *OpenShift Console*, navigate to *Workloads → Pods* and select your namespace. Find the `lightspeed-api` pod, click the three-dot menu on the right, and select *Delete Pod*. Repeat for the `lightspeed-chatbot-api` pod. Both will restart automatically and pick up the corrected configuration.
 
 ==== 3. Verification
 
