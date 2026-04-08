@@ -80,6 +80,12 @@ Then run the following command in the pod terminal:
 aap-gateway-manage update_password --username admin --password <password-from-secret>
 ----
 
+.Expected output
+[source,bash]
+----
+Password updated successfully for user admin
+----
+
 [NOTE]
 ====
 This command sets the `admin` user's password to the value specified in the active AAP Custom Resource (CR).
