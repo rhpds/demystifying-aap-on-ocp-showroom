@@ -1,4 +1,4 @@
-= Scenario 2: Gateway & Controller Issues
+= Scenario 2: Gateway & Controller issues
 
 [cols="3",options="header"]
 |===
@@ -15,15 +15,15 @@
 
 == Troubleshooting
 
-=== Step 1: Run the Break Scenario Job
+=== Step 1: Run the Break Scenario job
 
 Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template. Wait for it to complete before proceeding.
 
-=== Step 2: Attempt to Log In to AAP
+=== Step 2: Attempt to log in to AAP
 
 Use the *Ansible Automation Platform* tab on the right. Try to log in with your credentials. Note any errors or unexpected behavior.
 
-=== Step 2: Inspect Pod Logs
+=== Step 2: Inspect pod logs
 
 Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
 
@@ -31,13 +31,13 @@ Identify any failing pods and click through to review their *Logs* and *Events* 
 
 Navigate to *Networking → Services* and check for any missing or misconfigured services.
 
-=== Step 4: Fix the First Issue
+=== Step 4: Fix the first issue
 
 Once you have identified the first issue, apply the fix.
 
 Refer to the solution page if needed: xref:scenario-2-solution.adoc[Solution: Gateway & Controller Issues]
 
-=== Step 5: Fix the Second Issue
+=== Step 5: Fix the second issue
 
 Log back into AAP after resolving the first issue. Review pod logs again to identify the second issue and resolve it.
 

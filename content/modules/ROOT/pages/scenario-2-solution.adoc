@@ -1,20 +1,20 @@
-= 💡 Solution: Scenario 2 — Gateway & Controller Issues
+= 💡 Solution: Scenario 2 — Gateway & Controller issues
 
 This page provides the detailed solutions for the issues presented in Scenario 2. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 
-== 🛑 Problem 1: Missing Database Service
+== 🛑 Problem 1: Missing database service
 
 === Diagnosis
 
 The core issue was that the Kubernetes *Service* object for the PostgreSQL database was missing. Without a service, other components cannot resolve or connect to the database pods, causing widespread connectivity failures across the AAP stack.
 
-=== 🛠️ Resolution: Recreating the Database Service
+=== 🛠️ Resolution: Recreating the database service
 
 The fix requires recreating the Kubernetes Service object. Crucially, the service must contain specific metadata to prevent the Operator from immediately deleting it as an "unmanaged" resource.
 
-==== 1. Define and Apply the Missing Service
+==== 1. Define and apply the missing service
 
 In the *OpenShift Console*, navigate to *Networking → Services* in your namespace and create a new service. Click *Create Service* and replace the default YAML with the following, substituting `{username}` with your actual username (visible in your AAP URL and resource names):
 
@@ -57,17 +57,17 @@ Monitor *Workloads → Pods*. Once the service is recreated, the application com
 
 ---
 
-== 🛑 Problem 2: Incorrect Gateway Password
+== 🛑 Problem 2: Incorrect Gateway password
 
 === Diagnosis
 
 The second issue was an incorrect password set for the internal *AAP Gateway* administration user (`admin`). This prevents authentication into the AAP UI.
 
-=== 🛠️ Resolution: Resetting the Gateway Password
+=== 🛠️ Resolution: Resetting the Gateway password
 
 The solution is to use the dedicated `aap-gateway-manage` utility provided within the Gateway pod to reset the password back to the value defined in the AAP CR.
 
-==== 1. Execute the Management Command
+==== 1. Execute the management command
 
 In the *OpenShift Console*, navigate to *Workloads → Pods*, find the `{username}-aap-gateway` pod and open its *Terminal* tab.
 
@@ -85,6 +85,6 @@ aap-gateway-manage update_password --username admin --password <password-from-se
 This command sets the `admin` user's password to the value specified in the active AAP Custom Resource (CR).
 ====
 
-==== 2. Final Verification
+==== 2. Final verification
 
 Log in to the *AAP UI* to confirm full access is restored.

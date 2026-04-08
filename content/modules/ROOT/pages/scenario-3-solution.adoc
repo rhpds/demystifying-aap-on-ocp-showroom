@@ -1,20 +1,20 @@
-= 💡 Solution: Scenario 3 — Node Selector & Resource Issues
+= 💡 Solution: Scenario 3 — Node selector & resource issues
 
 This page provides the detailed solutions for the issues presented in Scenario 3. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 
-== 🛑 Problem 1: Database Pod Scheduling Failure
+== 🛑 Problem 1: Database pod scheduling failure
 
 === Diagnosis
 
 The *PostgreSQL Database* pods were unable to be scheduled because they had an invalid `nodeSelector` assigned in the CR. The scheduler could not find any node matching the criteria, so the pods remained in a `Pending` state indefinitely.
 
-=== 🛠️ Resolution: Correcting Node Scheduling
+=== 🛠️ Resolution: Correcting node scheduling
 
 The fix involves modifying the database configuration within the main *Ansible Automation Platform Custom Resource (CR)*.
 
-==== 1. Modify the Database Configuration in the CR
+==== 1. Modify the database configuration in the CR
 
 In the *OpenShift Console*, navigate to *Operators → Installed Operators → Ansible Automation Platform* and open your AAP instance. Switch to the *YAML* view.
 
@@ -34,17 +34,17 @@ spec:
 
 ---
 
-== 🛑 Problem 2: API Pod Resource Exhaustion
+== 🛑 Problem 2: API pod resource exhaustion
 
 === Diagnosis
 
 The *API* pods were failing due to oversized resource requests and limits defined in the CR. The requests exceeded the available node or cluster resources, preventing pod startup.
 
-=== 🛠️ Resolution: Reducing Resource Requirements
+=== 🛠️ Resolution: Reducing resource requirements
 
 The fix is to reduce the resource requirements defined in the API section of the CR to values that are manageable and realistic.
 
-==== 1. Modify the API Resource Requirements in the CR
+==== 1. Modify the API resource requirements in the CR
 
 Still in the AAP CR *YAML* view, reduce the values in the Controller resource requirements:
 
@@ -64,7 +64,7 @@ spec:
 
 ---
 
-== ♻️ Final Reconciliation
+== ♻️ Final reconciliation
 
 After both CR modifications are applied, the Operator must reconcile the environment.
 

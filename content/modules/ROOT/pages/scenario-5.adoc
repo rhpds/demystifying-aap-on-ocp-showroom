@@ -1,4 +1,4 @@
-= Scenario 5: Automation Hub Sync Issues
+= Scenario 5: Automation Hub sync issues
 
 [cols="3",options="header"]
 |===
@@ -15,21 +15,21 @@
 
 == Troubleshooting
 
-=== Step 1: Run the Break Scenario Job
+=== Step 1: Run the Break Scenario job
 
 Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template. Wait for it to complete before proceeding.
 
-=== Step 2: Attempt a Repository Sync
+=== Step 2: Attempt a repository sync
 
 In the AAP UI, navigate to *Automation Content → Repositories*. Find the *Community* repository and trigger a sync. Observe the result.
 
-=== Step 3: Inspect Hub Pod Logs
+=== Step 3: Inspect Hub pod logs
 
 Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
 
 Identify the relevant Hub pods and review their *Logs* tab for errors related to the sync failure.
 
-=== Step 4: Fix the Issues
+=== Step 4: Fix the issues
 
 Once you have identified the root causes, apply the fixes.
 

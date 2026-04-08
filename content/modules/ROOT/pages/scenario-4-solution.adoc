@@ -1,10 +1,10 @@
-= 💡 Solution: Scenario 4 — Execution Environment Credentials
+= 💡 Solution: Scenario 4 — Execution Environment credentials
 
 This page provides the detailed solution for the issue presented in Scenario 4. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 
-== 🛑 Problem: Missing Execution Environment Credential
+== 🛑 Problem: Missing Execution Environment credential
 
 === Diagnosis
 
@@ -16,7 +16,7 @@ The error message in the failed job's output confirms the authentication failure
 
 The solution is to modify the failing job template to reference an Execution Environment that is properly authenticated or publicly accessible.
 
-==== 1. Identify and Edit the Failing Job Template
+==== 1. Identify and edit the failing job template
 
 In the *AAP UI*, navigate to *Automation Execution → Templates*. Select the template that failed execution.
 

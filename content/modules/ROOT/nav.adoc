@@ -2,20 +2,20 @@
 
 * xref:index.adoc[Welcome & Credentials]
 
-* xref:scenario-1.adoc[Scenario 1: Automation Hub Storage Issue]
-** xref:scenario-1-solution.adoc[Solution: Automation Hub Storage Issue]
+* xref:scenario-1.adoc[Scenario 1: Automation Hub storage issue]
+** xref:scenario-1-solution.adoc[Solution: Automation Hub storage issue]
 
-* xref:scenario-2.adoc[Scenario 2: Gateway & Controller Issues]
-** xref:scenario-2-solution.adoc[Solution: Gateway & Controller Issues]
+* xref:scenario-2.adoc[Scenario 2: Gateway & Controller issues]
+** xref:scenario-2-solution.adoc[Solution: Gateway & Controller issues]
 
-* xref:scenario-3.adoc[Scenario 3: Node Selector & Resource Issues]
-** xref:scenario-3-solution.adoc[Solution: Node Selector & Resource Issues]
+* xref:scenario-3.adoc[Scenario 3: Node selector & resource issues]
+** xref:scenario-3-solution.adoc[Solution: Node selector & resource issues]
 
-* xref:scenario-4.adoc[Scenario 4: Execution Environment Credentials]
-** xref:scenario-4-solution.adoc[Solution: Execution Environment Credentials]
+* xref:scenario-4.adoc[Scenario 4: Execution Environment credentials]
+** xref:scenario-4-solution.adoc[Solution: Execution Environment credentials]
 
-* xref:scenario-5.adoc[Scenario 5: Automation Hub Sync Issues]
-** xref:scenario-5-solution.adoc[Solution: Automation Hub Sync Issues]
+* xref:scenario-5.adoc[Scenario 5: Automation Hub sync issues]
+** xref:scenario-5-solution.adoc[Solution: Automation Hub sync issues]
 
-* xref:scenario-6.adoc[Scenario 6: ALIA Lightspeed Issues]
-** xref:scenario-6-solution.adoc[Solution: ALIA Lightspeed Issues]
+* xref:scenario-6.adoc[Scenario 6: ALIA Lightspeed issues]
+** xref:scenario-6-solution.adoc[Solution: ALIA Lightspeed issues]

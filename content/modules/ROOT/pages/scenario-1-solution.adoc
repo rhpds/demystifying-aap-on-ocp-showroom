@@ -1,10 +1,10 @@
-= 💡 Solution: Scenario 1 — Automation Hub Storage Issue
+= 💡 Solution: Scenario 1 — Automation Hub storage issue
 
 This page provides the detailed solution for Scenario 1. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 
-== 🛑 Problem: Missing ReadWriteMany (RWX) Storage Class
+== 🛑 Problem: Missing ReadWriteMany (RWX) storage class
 
 === Diagnosis
 
@@ -12,11 +12,11 @@ The Automation Hub pods were failing due to an inability to provision or mount t
 
 The original StorageClass was set to a type that only supports *ReadWriteOnce (RWO)*, causing PVC binding and pod scheduling failures.
 
-=== 🛠️ Resolution: Updating the Storage Class
+=== 🛠️ Resolution: Updating the storage class
 
 The fix involves modifying the main *Ansible Automation Platform Custom Resource (CR)* to specify a valid RWX-capable StorageClass, followed by manually forcing a clean reconciliation.
 
-==== 1. Modify the AAP Custom Resource
+==== 1. Modify the AAP custom resource
 
 If you don't specify a storage class, the operator will use the cluster default storage class. In this case the default storage class is RWO storage — Automation Hub requires RWX storage.
 
@@ -30,19 +30,19 @@ spec:
     file_storage_storage_class: ocs-external-storagecluster-cephfs
 ----
 
-==== 2. Delete the Old PVC
+==== 2. Delete the old PVC
 
 The existing PVC created with the incorrect StorageClass must be deleted so the Operator can provision a new one with the correct StorageClass.
 
 In the *OpenShift Console*, navigate to *Storage → PersistentVolumeClaims*, filter by your namespace, identify the Hub file storage PVC and delete it.
 
-==== 3. Delete the hub-api Deployment
+==== 3. Delete the hub-api deployment
 
 The current hub-api deployment is holding on to old information and needs to be deleted so the Operator can redeploy it cleanly.
 
 In the *OpenShift Console*, navigate to *Workloads → Deployments*, find the `hub-api` deployment in your namespace and delete it.
 
-==== 4. Force Reconciliation
+==== 4. Force reconciliation
 
 Manually delete the Hub Operator manager pod to trigger the Operator to recognize the change and provision the new PVC correctly.
 

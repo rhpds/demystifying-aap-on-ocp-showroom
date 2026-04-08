@@ -9,7 +9,7 @@ Welcome to the *Demystifying Ansible Automation Platform (AAP) on OpenShift Cont
 In this lab you will troubleshoot real-world Ansible Automation Platform deployments running on OpenShift. Each scenario focuses on a different AAP component and presents a broken environment for you to diagnose and fix — no prior knowledge of the fix is expected. Your job is to observe, investigate, and reason through the problem.
 
 [#environment]
-== Your Environment
+== Your environment
 
 Your environment consists of a dedicated AAP instance already deployed on OpenShift. There is no bastion host — all interaction happens through:
 
@@ -17,7 +17,7 @@ Your environment consists of a dedicated AAP instance already deployed on OpenSh
 * The *OpenShift Console* accessible via the top navigation.
 
 [#credentials]
-== Your Credentials
+== Your credentials
 
 Use the following credentials to log into AAP:
 
@@ -48,7 +48,7 @@ The OpenShift Console is embedded and accessible via the top navigation bar. Use
 |===
 
 [#scenarios]
-== Lab Scenarios
+== Lab scenarios
 
 You have been assigned *Scenario {scenario}*. Each scenario presents a broken AAP deployment — your goal is to identify the root cause and restore full functionality.
 
@@ -64,7 +64,7 @@ You have been assigned *Scenario {scenario}*. Each scenario presents a broken AA
 |===
 
 [#how-it-works]
-== How the Lab Works
+== How the lab works
 
 . *Your environment is already deployed.* AAP is running on OpenShift in a namespace dedicated to you.
 . *You introduce the break.* For scenarios 2-6, log into AAP and run the *Break Scenario* job template in the Controller. This applies the failure for your scenario. For scenario 1, the environment is already broken — no action needed.
