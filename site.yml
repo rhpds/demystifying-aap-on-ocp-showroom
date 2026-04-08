@@ -21,6 +21,7 @@ ui:
       contents: "static_files: [ .nojekyll ]"
 
 runtime:
+  fetch: true
   cache_dir: ./.cache/antora
 
 antora:
