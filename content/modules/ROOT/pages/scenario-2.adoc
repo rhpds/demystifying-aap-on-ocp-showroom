@@ -47,4 +47,4 @@ Confirm all pods are running and ready, and that you can successfully log into t
 
 == Hint
 
-There are two independent issues. Focus on discovering *what* is wrong rather than knowing the fix upfront — check pod logs and service configurations. Once you have identified an issue, check the solution page to apply the fix, then move on to the second issue.
+There are two independent issues. Focus on discovering *what* is wrong rather than knowing the fix upfront; check pod logs and service configurations. Once you have identified an issue, check the solution page to apply the fix, then move on to the second issue.

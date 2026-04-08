@@ -41,4 +41,4 @@ In the *OpenShift Console*, navigate to *Workloads → Pods* in your namespace. 
 
 ==== 3. Verification
 
-Monitor *Workloads → Pods* until the Lightspeed pods are running and ready. Then log back into the AAP UI — the ALIA chat icon should reappear in the top navigation bar and respond to a test query.
+Monitor *Workloads → Pods* until the Lightspeed pods are running and ready. Then log back into the AAP UI; the ALIA chat icon should reappear in the top navigation bar and respond to a test query.

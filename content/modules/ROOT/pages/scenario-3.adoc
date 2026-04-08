@@ -23,7 +23,7 @@ Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automatio
 
 Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
 
-Identify pods that are not reaching a `Running` state. Click on each failing pod and review the *Events* tab — the scheduler messages will point you toward the root cause.
+Identify pods that are not reaching a `Running` state. Click on each failing pod and review the *Events* tab; the scheduler messages will point you toward the root cause.
 
 === Step 3: Fix the issues
 
@@ -37,4 +37,4 @@ Confirm all pods are running and ready, then successfully log into the AAP UI.
 
 == Hint
 
-There are two issues. Try to identify both before checking the solution. Use *Describe* on the failing pods in the OpenShift Console — the events section will tell you exactly why the scheduler cannot place them.
+There are two issues. Try to identify both before checking the solution. Use *Describe* on the failing pods in the OpenShift Console; the events section will tell you exactly why the scheduler cannot place them.

@@ -71,7 +71,7 @@ The solution is to use the dedicated `aap-gateway-manage` utility provided withi
 
 In the *OpenShift Console*, navigate to *Workloads → Pods*, find the `{username}-aap-gateway` pod and open its *Terminal* tab.
 
-First, retrieve the correct password from *Workloads → Secrets* — look for the `{username}-aap-admin-password` secret and note its value.
+First, retrieve the correct password from *Workloads → Secrets* and look for the `{username}-aap-admin-password` secret and note its value.
 
 Then run the following command in the pod terminal:
 

@@ -20,7 +20,7 @@ In the *OpenShift Console*, navigate to *Operators → Installed Operators → A
 
 You have two valid options:
 
-* *Option A: Specify a Valid Selector* — Replace the incorrect `nodeSelector` with a valid label:
+* *Option A: Specify a valid selector*: replace the incorrect `nodeSelector` with a valid label:
 +
 [source,yaml]
 ----
@@ -30,7 +30,7 @@ spec:
       kubernetes.io/os: linux
 ----
 
-* *Option B: Remove the Selector* — Delete the `nodeSelector` field entirely from the database section of the CR to allow scheduling on any available node.
+* *Option B: Remove the selector*: delete the `nodeSelector` field entirely from the database section of the CR to allow scheduling on any available node.
 
 ---
 

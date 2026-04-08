@@ -13,7 +13,7 @@
 
 [NOTE]
 ====
-*Scenario 1 is different from the others.* The environment is already broken at deployment — there is no *Break Scenario* job template to run. Log into AAP and go straight to troubleshooting.
+*Scenario 1 is different from the others.* The environment is already broken at deployment. There is no *Break Scenario* job template to run. Log into AAP and go straight to troubleshooting.
 ====
 
 == Troubleshooting
