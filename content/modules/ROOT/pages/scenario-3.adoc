@@ -10,7 +10,7 @@
 
 * Log in to the *AAP Gateway UI*.
 * Observe multiple core components failing to deploy or stabilize.
-* Diagnose two distinct issues.
+* Diagnose 2 distinct issues.
 * Resolve both issues.
 
 == Troubleshooting
@@ -37,4 +37,4 @@ Confirm all pods are running and ready, then successfully log into the AAP UI.
 
 == Hint
 
-There are two issues. Try to identify both before checking the solution. Use *Describe* on the failing pods in the OpenShift Console; the events section will tell you exactly why the scheduler cannot place them.
+There are 2 issues. Try to identify both before checking the solution. Use *Describe* on the failing pods in the OpenShift Console; the events section will tell you exactly why the scheduler cannot place them.

@@ -11,7 +11,7 @@
 * Log in to the *AAP Gateway UI* successfully.
 * Navigate to *Automation Content → Repositories*.
 * Attempt to synchronize the built-in *Community* repository.
-* Diagnose and resolve the two underlying issues preventing successful synchronization.
+* Diagnose and resolve the 2 underlying issues preventing successful synchronization.
 
 == Troubleshooting
 
@@ -41,4 +41,4 @@ After applying the fixes, attempt to sync the *Community* repository again. A su
 
 == Hint
 
-There are two issues. The first error message may not immediately reveal the root cause; search for the specific error text to find relevant Red Hat Knowledge Base articles. Once the first issue is resolved, the second one will become apparent from the next sync attempt.
+There are 2 issues. The first error message may not immediately reveal the root cause; search for the specific error text to find relevant Red Hat Knowledge Base articles. Once the first issue is resolved, the second one will become apparent from the next sync attempt.
