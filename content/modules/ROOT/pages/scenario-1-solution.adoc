@@ -34,19 +34,19 @@ spec:
 
 The existing PVC created with the incorrect StorageClass must be deleted so the Operator can provision a new one with the correct StorageClass.
 
-In the *OpenShift Console*, navigate to *Storage → PersistentVolumeClaims*, filter by your namespace, identify the Hub file storage PVC and delete it.
+In the *OpenShift Console*, navigate to *Storage → PersistentVolumeClaims* and select your namespace from the dropdown. Find the Hub file storage PVC, click the three-dot menu on the right, and select *Delete PersistentVolumeClaim*.
 
 ==== 3. Delete the hub-api deployment
 
 The current hub-api deployment is holding on to old information and needs to be deleted so the Operator can redeploy it cleanly.
 
-In the *OpenShift Console*, navigate to *Workloads → Deployments*, find the `hub-api` deployment in your namespace and delete it.
+In the *OpenShift Console*, navigate to *Workloads → Deployments* and select your namespace. Find the `hub-api` deployment, click the three-dot menu on the right, and select *Delete Deployment*.
 
 ==== 4. Force reconciliation
 
 Manually delete the Hub Operator manager pod to trigger the Operator to recognize the change and provision the new PVC correctly.
 
-In the *OpenShift Console*, navigate to *Workloads → Pods*, find the Hub Operator manager pod in your namespace and delete it.
+In the *OpenShift Console*, navigate to *Workloads → Pods* and select your namespace. Find the Hub Operator manager pod (named `automation-hub-operator-controller-manager-...`), click the three-dot menu on the right, and select *Delete Pod*.
 
 ==== 5. Verification
 

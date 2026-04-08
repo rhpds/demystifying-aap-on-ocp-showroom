@@ -22,7 +22,7 @@ In the *OpenShift Console*, navigate to *Workloads → Secrets* in your namespac
 
 Update the `chatbot_model` value to the correct model name:
 
-[source,yaml]
+[source,yaml,subs="+attributes"]
 ----
 data:
   chatbot_model: {alia_model}  # <--- CORRECT VALUE
