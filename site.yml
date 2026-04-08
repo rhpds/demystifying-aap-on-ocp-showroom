@@ -1,7 +1,7 @@
 ---
 site:
   title: Demystifying Ansible Automation Platform on OpenShift Container Platform Lab
-  url: https://github.com/rhpds/showroom_template_nookbag
+  url: https://rhpds.github.io/demystifying-aap-on-ocp-showroom
   start_page: modules::index.adoc
 
 content:
