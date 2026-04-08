@@ -7,6 +7,7 @@ nav:
 asciidoc:
   attributes:
     page-pagination: true
+    lab_name: "Demystifying AAP on OCP"
     # The following attributes are injected at deploy time by ocp4_workload_showroom
     # via ocp4_workload_showroom_content_vars in the AgnosticV tenant common.yaml:
     #   scenario, aap_url, console_url, aap_admin_user, aap_admin_password,
