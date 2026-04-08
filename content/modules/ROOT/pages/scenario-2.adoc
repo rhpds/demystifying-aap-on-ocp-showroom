@@ -23,7 +23,7 @@ Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automatio
 
 Use the *Ansible Automation Platform* tab on the right. Try to log in with your credentials. Note any errors or unexpected behavior.
 
-=== Step 2: Inspect pod logs
+=== Step 3: Inspect pod logs
 
 Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
 
@@ -35,7 +35,7 @@ Navigate to *Networking → Services* and check for any missing or misconfigured
 
 Once you have identified the first issue, apply the fix.
 
-Refer to the solution page if needed: xref:scenario-2-solution.adoc[Solution: Gateway & Controller Issues]
+Refer to the solution page if needed: xref:scenario-2-solution.adoc[Solution: Gateway & Controller issues]
 
 === Step 5: Fix the second issue
 
