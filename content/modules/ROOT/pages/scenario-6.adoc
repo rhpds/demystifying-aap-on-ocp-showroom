@@ -11,7 +11,7 @@
 * Log in to the *AAP Gateway UI* successfully.
 * Observe that the *ALIA* chat icon is missing from the interface.
 +
-image::chat_icon.png[Reference of the ALIA chat icon, width=317, align="left"]
+image::chat_icon.png[Reference of the ALIA chat icon, width=317, align="left", link=self, window=_blank]
 * Diagnose the underlying issue preventing the ALIA UI component from activating.
 * Resolve the issue to restore the assistant.
 
