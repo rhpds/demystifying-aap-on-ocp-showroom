@@ -11,6 +11,11 @@
 * Verify the health of the *Automation Hub* pods.
 * Diagnose and resolve a storage-related failure preventing Hub from starting.
 
+[NOTE]
+====
+*Scenario 1 is different from the others.* The environment is already broken at deployment — there is no *Break Scenario* job template to run. Log into AAP and go straight to troubleshooting.
+====
+
 == Troubleshooting
 
 === Step 1: Inspect Hub Pods
