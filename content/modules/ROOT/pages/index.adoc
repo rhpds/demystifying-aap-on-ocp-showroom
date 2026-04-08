@@ -41,7 +41,7 @@ The OpenShift Console is embedded and accessible via the top navigation bar. Use
 [cols="1,2",options="header"]
 |===
 | Field | Value
-| *Username* | admin
+| *Username* | {user}
 | *Password* | {password}
 |===
 
