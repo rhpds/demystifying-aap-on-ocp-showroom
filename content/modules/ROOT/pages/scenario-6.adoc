@@ -22,7 +22,7 @@ The correct LLM connection details for your environment are:
 [cols="1,2",options="header"]
 |===
 | Field | Value
-| *Model API URL* | {alia_url}
+| *Model API URL* | https://litellm-prod.apps.maas.redhatworkshops.io/v1
 | *Model Name* | {alia_model}
 |===
 

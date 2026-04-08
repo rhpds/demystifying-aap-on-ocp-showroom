@@ -8,16 +8,13 @@ asciidoc:
   attributes:
     page-pagination: true
     lab_name: "Demystifying AAP on OCP"
-    # The following attributes are injected at deploy time by ocp4_workload_showroom
-    # via ocp4_workload_showroom_content_vars in the AgnosticV tenant common.yaml:
-    #   scenario, aap_url, console_url, aap_admin_user, aap_admin_password,
-    #   alia_token, alia_model, alia_url
+    # The following attributes are injected at deploy time from the showroom
+    # user_data.yml configmap (populated by the RHDP provisioning platform):
+    #   password, user, guid, openshift_console_url, openshift_cluster_ingress_domain
     #
     # Dev-mode placeholder values for local Antora builds:
-    scenario: "1"
-    aap_url: "https://aap.example.com"
-    console_url: "https://console.example.com"
-    aap_admin_user: "admin"
-    aap_admin_password: "changeme"
-    alia_url: "https://litellm-prod.apps.maas.redhatworkshops.io/v1"
+    password: "changeme"
+    user: "user-guid"
+    guid: "guid"
+    # alia_model is hardcoded since it is not injected at deploy time
     alia_model: "granite-3-2-8b-instruct"

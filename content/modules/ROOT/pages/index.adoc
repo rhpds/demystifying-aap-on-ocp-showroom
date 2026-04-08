@@ -19,19 +19,18 @@ Your environment consists of a dedicated AAP instance already deployed on OpenSh
 [#credentials]
 == Your credentials
 
-Use the following credentials to log into AAP:
+Use the following credentials to log into AAP via the tab on the right:
 
 [cols="1,2",options="header"]
 |===
 | Field | Value
-| *URL* | {aap_url}
-| *Username* | {aap_admin_user}
-| *Password* | {aap_admin_password}
+| *Username* | admin
+| *Password* | {password}
 |===
 
 [TIP]
 ====
-The AAP tab on the right side of this page is already pointing to your AAP instance. You can also open it directly in a new browser tab using the URL above.
+The AAP tab on the right side of this page is already pointing to your AAP instance.
 ====
 
 [#ocp-console]
@@ -42,15 +41,14 @@ The OpenShift Console is embedded and accessible via the top navigation bar. Use
 [cols="1,2",options="header"]
 |===
 | Field | Value
-| *Console URL* | {console_url}
 | *Username* | admin
-| *Password* | {aap_admin_password}
+| *Password* | {password}
 |===
 
 [#scenarios]
 == Lab scenarios
 
-You have been assigned *Scenario {scenario}*. Each scenario presents a broken AAP deployment; your goal is to identify the root cause and restore full functionality.
+Each scenario presents a broken AAP deployment; your goal is to identify the root cause and restore full functionality.
 
 [cols="1,1,3",options="header"]
 |===
