@@ -1,84 +1,40 @@
-# Scenario #6: Automation Controller Job Issues
+= Scenario 5: Automation Hub Sync Issues
 
-[#scenario-06,cols="3"]
-.Scenario #6: Automation Controller Job Issues
+[cols="3",options="header"]
 |===
-| **Mode** | **Components** | **Namespace**
-
-| Easy
-| Automation Controller
-| `aap-rh1`
+| Difficulty | Components | Break Type
+| Easy | Automation Hub | Repository synchronization
 |===
 
-### 📝 Objectives
+== Objectives
 
-* Log in to the **AAP Gateway UI** successfully.
-* Launch the four available job templates and identify the failure.
-* Diagnose the root cause
-* Resolve the underlying issue
+* Log in to the *AAP Gateway UI* successfully.
+* Navigate to *Automation Content → Repositories*.
+* Attempt to synchronize the built-in *Community* repository.
+* Diagnose and resolve the two underlying issues preventing successful synchronization.
 
-### 🛠️ Prerequisites: Setup and Break
+== Troubleshooting
 
-#### 1. Initial Deployment
+=== Step 1: Attempt a Repository Sync
 
-[.instruction]
-====
-Execute the following command, then select **Scenario 6** when prompted.
-====
+In the AAP UI, navigate to *Automation Content → Repositories*. Find the *Community* repository and trigger a sync. Observe the result.
 
-[source,bash]
-----
-ansible-playbook site.yml
-----
+=== Step 2: Inspect Hub Pod Logs
 
-#### 2. Introduce Failure (Break)
+Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
 
-[.instruction]
-====
-Execute the following command, then select **Scenario 6** when prompted.
-====
+Identify the relevant Hub pods and review their *Logs* tab for errors related to the sync failure.
 
-[source,bash]
-----
-ansible-playbook site.yml -t break
-----
+=== Step 3: Fix the Issues
 
-### ✅ Steps to Resolution
+Once you have identified the root causes, apply the fixes.
 
-#### Step 1: Launch Job Templates and Identify Failure
+Refer to the solution page if needed: xref:scenario-6-solution.adoc[Solution: Automation Hub Sync Issues]
 
-[.instruction]
-====
-In the Automation Controller UI, launch all four job templates and identify the one that fails.
-====
+=== Step 4: Verify
 
-#### Step 2: Inspect Job Pod Logs
+After applying the fixes, attempt to sync the *Community* repository again. A successful synchronization job confirms the scenario is resolved.
 
-[.instruction]
-====
-Find the specific **automation-job** pod associated with the failed job and view its logs.
-====
+== Hint
 
-[source,bash]
-----
-oc logs -n aap-rh1 <automation-job-pod-name>
-----
-
-#### Step 3: Implement the Fix
-
-[.instruction]
-====
-Edit the failing job template using the information you learned.
-====
-
-#### Step 4: Verify Resolution
-
-[.instruction]
-====
-Launch the previously failing job template again.
-====
-
-[.output]
-====
-The job should now successfully run.
-====
+There are two issues. The first error message may not immediately reveal the root cause — search for the specific error text to find relevant Red Hat Knowledge Base articles. Once the first issue is resolved, the second one will become apparent from the next sync attempt.

@@ -1,90 +1,59 @@
-:imagesdir: images
-Scenario #7: Ansible Lightspeed Intelligent Assistant (ALIA) Issues
+= Scenario 6: ALIA — Ansible Lightspeed Issues
 
-[#scenario-07,cols="3"]
-.Scenario #7: Ansible Lightspeed Intelligent Assistant (ALIA) Issues
+[cols="3",options="header"]
 |===
-| **Mode** | **Components** | **Namespace**
-
-| Hard
-| Ansible Lightspeed Intelligent Assistant (ALIA)
-| `aap-rh1`
+| Difficulty | Components | Break Type
+| Hard | Ansible Lightspeed Intelligent Assistant (ALIA) | Wrong LLM model configuration
 |===
 
-### 📝 Objectives
+== Objectives
 
-* Log in to the **AAP Gateway UI** successfully.
-* Observe that the **ALIA** chat icon is missing from the interface.
+* Log in to the *AAP Gateway UI* successfully.
+* Observe that the *ALIA* chat icon is missing from the interface.
 +
-image::chat_icon.png[Reference of missing chat icon, width=317, align="left"]
+image::chat_icon.png[Reference of the ALIA chat icon, width=317, align="left"]
 * Diagnose the underlying issue preventing the ALIA UI component from activating.
-* Resolve the issue(s) to restore the assistant.
+* Resolve the issue to restore the assistant.
 
----
+== Your ALIA Configuration
 
-### 💡 Hint
+The correct LLM connection details for your environment are:
 
-* The ALIA service requires a valid connection to a Large Language Model (LLM). Review the logs for the `lightspeed-api` and `chatbot` pods.
-* The required model information is available below as well as on the **Lab Resource Page**.
-** Model API: `{litellm_api_base_url}`
-** Model API Key: `{litellm_virtual_key}`
-** Available Model: `{litellm_available_models_list}`
+[cols="1,2",options="header"]
+|===
+| Field | Value
+| *Model API URL* | {alia_url}
+| *Model Name* | {alia_model}
+|===
 
----
+== Troubleshooting
 
-### 🛠️ Prerequisites: Setup and Break
+=== Step 1: Confirm the ALIA Icon is Missing
 
-#### 1. Initial Deployment
+Log into AAP and confirm the chat icon is not visible in the interface.
 
-[.instruction]
-====
-Execute the following command, then select **Scenario 7** when prompted.
-====
+=== Step 2: Inspect Lightspeed Pod Logs
 
-[source,bash]
-----
-ansible-playbook site.yml
-----
+Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
 
-#### 2. Introduce Failure (Break)
+Identify the `lightspeed-api` and `chatbot` pods and review their *Logs* tabs for connection errors related to the LLM backend.
 
-[.instruction]
-====
-Execute the following command, ensuring you include the correct Model API Key for the variable chatbot_token. Select **Scenario 7** when prompted.
-====
+=== Step 3: Identify the Misconfiguration
 
-[source,bash,subs="attributes"]
-----
-ansible-playbook site.yml -t break -e chatbot_token={litellm_virtual_key}
-----
+Compare what the pods are trying to connect to against the correct ALIA configuration values above. The issue will be visible in the pod logs or in the Lightspeed configuration secret.
 
----
+Navigate to *Workloads → Secrets* in the OpenShift Console to inspect the chatbot configuration secret.
 
-### ✅ Steps to Resolution
+=== Step 4: Fix the Issue
 
-#### Step 1: Inspect Pod Logs
+Once you have identified the misconfiguration, apply the fix through the OpenShift Console.
 
-[.instruction]
-====
-Inspect the logs for the `lightspeed-api` and `chatbot` pods.
-====
+Refer to the solution page if needed: xref:scenario-7-solution.adoc[Solution: ALIA Lightspeed Issues]
 
-[source,bash]
-----
-oc logs -n aap-rh1 <lightspeed-api-pod-name>
-oc logs -n aap-rh1 <chatbot-pod-name>
-----
+=== Step 5: Verify
 
-#### Step 2: Implement Fixes
+After applying the fix and allowing the Lightspeed pods to reconcile, log back into AAP and confirm the ALIA chat icon is now visible and responsive.
 
-[.instruction]
-====
-Once you have diagnosed the issues, run the fix task or follow the specific resolution steps located in the solution document: **xref:scenario-7-solution.adoc[7.1. Solution: Lightspeed Issues]**
-====
+== Hint
 
-#### Step 3: Verify Resolution
-
-[.instruction]
-====
-After applying the fixes and allowing reconciliation, attempt to interact with Ansible Lightspeed Intelligent Assistant.
-====
+The ALIA service requires a valid connection to a Large Language Model. Review the logs for the Lightspeed API and chatbot pods — the error will indicate what model or endpoint is being used and why it is failing. Compare this against the correct configuration values shown above.

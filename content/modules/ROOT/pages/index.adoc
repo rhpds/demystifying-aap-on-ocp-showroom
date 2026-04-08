@@ -1,171 +1,79 @@
-= Demystifying Ansible Automation Platform on OpenShift Container Platform Lab
-:sectnums:
-:toc: left
-:toclevels: 2
-:author: Your Name/Team Name (Optional)
+= Demystifying Ansible Automation Platform on OpenShift Container Platform
+:page-layout: home
 
 [#welcome]
-== 👋 Welcome to the Lab!
+== Welcome to the Lab!
 
-Welcome to the **Demystifying Ansible Automation Platform (AAP) on OpenShift Container Platform (OCP)** lab!
+Welcome to the *Demystifying Ansible Automation Platform (AAP) on OpenShift Container Platform (OCP)* lab!
 
-In this lab, we are going to dive deep into troubleshooting Ansible Automation Platform deployments on OpenShift. You will work through practical exercises focused on the AAP Operator to help demonstrate where to look to find out what is going on with the deployment and how to fix some of the most common issues the Ansible SBR team encounters.
+In this lab you will troubleshoot real-world Ansible Automation Platform deployments running on OpenShift. Each scenario focuses on a different AAP component and presents a broken environment for you to diagnose and fix — no prior knowledge of the fix is expected. Your job is to observe, investigate, and reason through the problem.
 
 [#environment]
-== 🖥️ Your Environment
+== Your Environment
 
-* Each student has their own **Single Node OpenShift cluster** with cluster administrator access.
-* All of the work for the lab will be done on the **Bastion Host** provided.
+Your environment consists of a dedicated AAP instance already deployed on OpenShift. There is no bastion host — all interaction happens through:
+
+* The *Ansible Automation Platform* tab on the right side of this page.
+* The *OpenShift Console* accessible via the top navigation.
+
+[#credentials]
+== Your Credentials
+
+Use the following credentials to log into AAP:
+
+[cols="1,2",options="header"]
+|===
+| Field | Value
+| *URL* | {aap_url}
+| *Username* | {aap_admin_user}
+| *Password* | {aap_admin_password}
+|===
 
 [TIP]
-.Bastion Host Pre-Configuration
 ====
-The Bastion Host has been pre-configured with:
+The AAP tab on the right side of this page is already pointing to your AAP instance. You can also open it directly in a new browser tab using the URL above.
+====
 
-* The `oc` client (OpenShift CLI).
-* The required Ansible tasks, modules, and collections.
-* All other resources needed to complete the lab.
-====
+[#ocp-console]
+== OpenShift Console
+
+The OpenShift Console is embedded and accessible via the top navigation bar. Use it to inspect pods, events, storage, and other cluster resources as you troubleshoot.
+
+[cols="1,2",options="header"]
+|===
+| Field | Value
+| *Console URL* | {console_url}
+| *Username* | admin
+| *Password* | {aap_admin_password}
+|===
 
 [#scenarios]
-== 🧩 Lab Scenarios Overview
+== Lab Scenarios
 
-You have **6 scenarios** to work through, covering each major component of Ansible Automation Platform:
+You have been assigned *Scenario {scenario}*. Each scenario presents a broken AAP deployment — your goal is to identify the root cause and restore full functionality.
 
-* Automation Gateway
-* Automation Execution (Automation Controller)
-* Automation Content (Automation Hub)
-* Automation Decisions (EDA Server)
-* Ansible Lightspeed Intelligent Assistant (ALIA)
+[cols="1,1,3",options="header"]
+|===
+| Scenario | Component | Description
+| 1 | Automation Hub | Hub fails to start due to a storage configuration issue
+| 2 | Automation Controller + Hub | Wrong admin password / Database service missing
+| 3 | Automation Controller + Hub | Wrong node selector / High resource requests
+| 4 | Automation Controller + Hub | Job template with Execution Environment using wrong credentials
+| 5 | Automation Hub | Hub community sync limits / Hub sync storage issue
+| 6 | Ansible Lightspeed (ALIA) | ALIA chat assistant not responding due to wrong model configuration
+|===
 
-[#get-started]
-== 🚀 Getting Started
+[#how-it-works]
+== How the Lab Works
 
-To begin the learning lab, please complete the following setup and initialization steps:
-
-### SSH into the Bastion Host
-
-Establish an SSH connection to the lab's **Bastion Host** using the provided credentials.
-
-[source,bash,subs="attributes"]
-----
-{ssh_command}
-----
-
-[NOTE]
-====
-Use the following password when prompted: **{bastion_ssh_password}**
-====
-
-### Access OpenShift Cluster
-
-#### OpenShift UI Access
-
-Open the following URL in your browser:
-**{openshift_console_url}**
+. *Your environment is already deployed.* AAP is running on OpenShift in a namespace dedicated to you.
+. *The facilitator introduces the break.* The facilitator will run the *Break Scenario* job template in your AAP Controller before you start troubleshooting. This applies the failure for your assigned scenario.
+. *You investigate and fix the issue.* Use the AAP UI and OpenShift Console to diagnose the problem and restore full functionality.
+. *Refer to the solution page* if you need guidance after attempting the diagnosis yourself.
 
 [NOTE]
 ====
-* **Username:** {openshift_cluster_admin_username}
-* **Password:** {openshift_cluster_admin_password}
+You are not expected to know the fix upfront — the goal is to practice the investigation process and learn where to look in AAP on OCP.
 ====
 
-#### Verify OpenShift CLI
-
-The bastion host is pre-authenticated to your cluster.
-Confirm that your `oc` (OpenShift CLI) connection is valid from the Bastion Host.
-
-[source,bash]
-----
-oc whoami
-----
-
-### Change into rh1-aap-troubleshooting directory
-
-[source,bash]
-----
-cd rh1-aap-troubleshooting
-----
-
-### Deploy Scenario
-
-Execute the following commands to execute a scenario to deploy an Ansible Automation Platform environment. Be sure to type in the ID of the scenario when prompted.
-
-[source,bash]
-----
-ansible-playbook site.yml
-----
-
-.Example Output
-[.output]
-----
-$ ansible-playbook site.yml
-
-ID: 2
-Path: roles/scenario_2
-Description: Automation Content (Private Automation Hub) Issues
-
-ID: 3
-Path: roles/scenario_3
-Description: Gateway Issues
-
-ID: 4
-Path: roles/scenario_4
-Description: Different Gateway issues
-
-ID: 5
-Path: roles/scenario_5
-Description: Automation Content (Private Automation Hub) Sync Issues
-
-ID: 6
-Path: roles/scenario_6
-Description: Automation Execution (Controller) Issues
-
-ID: 7
-Path: roles/scenario_7
-Description: Ansible Lightspeed Intelligent Assistant (ALIA) Issues
-
-Enter the ID corresponding to your choice:
-----
-
-### Fix Scenario
-
-Execute the following command if you would like to fix the scenario breakage. Be sure to type in the ID of the scenario when prompted.
-
-[source,bash]
-----
-ansible-playbook site.yml -t fix
-----
-
-### Delete Scenario
-
-Execute the following command if you would like to delete the scenario and start again. Be sure to type in the ID of the scenario when prompted.
-
-[source,bash]
-----
-ansible-playbook site.yml -t delete
-----
-
-### Download the AAP Manifest
-
-You must transfer the AAP manifest from the Bastion Host to your local workstation to complete the registration steps later in the lab.
-
-[.instruction]
-====
-Execute the following `scp` command from a terminal on your **local machine** (not from within the Bastion SSH session).
-====
-
-[source,bash,subs="attributes"]
-----
-scp -P {bastion_ssh_port} {bastion_ssh_user_name}@{bastion_public_hostname}:/home/{bastion_ssh_user_name}/manifest_demystify_aap.zip .
-----
-
-[NOTE]
-====
-* Ensure you include the period (`.`) at the end of the command to signify the current directory as the destination.
-* Use the same password provided for your Bastion SSH access.
-====
-
-++++
-<p style="text-align: center; font-size: 1.5em; margin-top: 2em;"><strong>Good luck and have fun!</strong></p>
-++++
+Navigate to your scenario using the left-hand menu to get started. *Good luck!*

@@ -1,102 +1,36 @@
-# Scenario #4: Gateway Pod Issues
+= Scenario 3: Node Selector & Resource Issues
 
-[#scenario-04,cols="3"]
-.Scenario #4: Gateway Pod Issues
+[cols="3",options="header"]
 |===
-| **Mode** | **Components** | **Namespace**
-
-| Easy/Medium
-| Gateway
-| `aap-rh1`
+| Difficulty | Components | Break Type
+| Easy / Medium | Gateway | Two distinct issues
 |===
 
-### 📝 Objectives
+== Objectives
 
-* Log in to the **AAP Gateway UI**.
+* Log in to the *AAP Gateway UI*.
 * Observe multiple core components failing to deploy or stabilize.
-* Diagnose two distinct issues
+* Diagnose two distinct issues.
 * Resolve both issues.
 
----
+== Troubleshooting
 
-### 💡 Hint
+=== Step 1: Inspect Failing Pods
 
-* Use `oc describe pod <failing-pod-name>`
+Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
 
----
+Identify pods that are not reaching a `Running` state. Click on each failing pod and review the *Events* tab — the scheduler messages will point you toward the root cause.
 
-### 🛠️ Prerequisites: Setup and Break
+=== Step 2: Fix the Issues
 
-#### 1. Initial Deployment
+Once you have identified both issues, apply the fixes through the OpenShift Console.
 
-[.instruction]
-====
-Execute the following command, then select **Scenario 4** when prompted.
-====
+Refer to the solution page if needed: xref:scenario-4-solution.adoc[Solution: Node Selector & Resource Issues]
 
-[source,bash]
-----
-ansible-playbook site.yml
-----
+=== Step 3: Verify
 
-#### 2. Introduce Failure (Break)
+Confirm all pods are running and ready, then successfully log into the AAP UI.
 
-[.instruction]
-====
-Execute the following command, then select **Scenario 4** when prompted.
-====
+== Hint
 
-[source,bash]
-----
-ansible-playbook site.yml -t break
-----
-
-### ✅ Steps to Resolution
-
-#### Step 1: Check Pod Logs
-
-[.instruction]
-====
-Identify the failing pods and describe them to find the failure reason.
-====
-
-[source,bash]
-----
-oc get pods -n aap-rh1
-oc describe pod <failing-pod> -n aap-rh1
-----
-
-#### Step 2: Implement the Fixes
-
-[.instruction]
-====
-Once you have diagnosed the issues, follow the specific resolution steps located in the solution document: **xref:scenario-4-solution.adoc[4.1. Solution: Gateway Issues]**
-====
-
-#### Step 3: Verify Resolution
-
-[.instruction]
-====
-Verify all pods are running and ready, then successfully log into the AAP UI.
-====
-
-[source,bash]
-----
-oc get pods -n aap-rh1
-----
-
----
-
-### 💡 Hint
-
-* There are two issues here, try to resolve both of them before running the fix playbook. View the solution document if stuck. Run the fix playbook to fix both issues. 
-[.instruction]
-====
-Execute the following command, then select **Scenario 4** when prompted.
-====
-
-[source,bash]
-----
-ansible-playbook site.yml -t fix
-
-----
+There are two issues. Try to identify both before checking the solution. Use *Describe* on the failing pods in the OpenShift Console — the events section will tell you exactly why the scheduler cannot place them.
