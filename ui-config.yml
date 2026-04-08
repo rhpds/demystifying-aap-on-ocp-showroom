@@ -10,8 +10,12 @@ view_switcher:
   enabled: true
   default_mode: split
 
-# Tabs are injected at deploy time by ocp4_workload_showroom
-# via ocp4_workload_showroom_content_ui_config in the AgnosticV tenant common.yaml.
-# tabs:
-#   - name: Ansible Automation Platform
-#     url: 'https://{username}-aap-{namespace}.apps.{domain}'
+# NOTE: At deploy time, these tabs are overridden by ocp4_workload_showroom
+# via ocp4_workload_showroom_content_ui_config in the AgnosticV tenant common.yaml,
+# which injects the real per-tenant AAP and OCP Console URLs.
+# The tabs below are placeholders for local/GitHub Pages preview builds only.
+tabs:
+  - name: Ansible Automation Platform
+    url: 'https://aap.example.com'
+  - name: OpenShift Console
+    url: 'https://console.example.com'
