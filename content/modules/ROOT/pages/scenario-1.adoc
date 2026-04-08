@@ -10,6 +10,7 @@
 
 * Verify the health of the *Automation Hub* pods.
 * Diagnose and resolve a storage-related failure preventing Hub from starting.
+* Understand why Automation Hub requires a ReadWriteMany (RWX) storage class.
 
 [NOTE]
 ====
