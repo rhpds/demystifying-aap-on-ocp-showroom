@@ -19,3 +19,5 @@
 
 * xref:scenario-6.adoc[Scenario 6: ALIA Lightspeed issues]
 ** xref:scenario-6-solution.adoc[Solution: ALIA Lightspeed issues]
+
+* xref:conclusion.adoc[Conclusion]
