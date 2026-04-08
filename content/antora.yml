@@ -6,14 +6,17 @@ nav:
 
 asciidoc:
   attributes:
-    lab_name: "I'm the lab_name var"
-    release-version: master
     page-pagination: true
-    my_var: "foo"
-    guid: my-guid
-    ssh_user: devops
-    ssh_password: devops
-    ssh_command: ssh someone@example.com
-    page-links:
-    - url: https://redhat.com
-      text: Red Hat
+    # The following attributes are injected at deploy time by ocp4_workload_showroom
+    # via ocp4_workload_showroom_content_vars in the AgnosticV tenant common.yaml:
+    #   scenario, aap_url, console_url, aap_admin_user, aap_admin_password,
+    #   alia_token, alia_model, alia_url
+    #
+    # Dev-mode placeholder values for local Antora builds:
+    scenario: "1"
+    aap_url: "https://aap.example.com"
+    console_url: "https://console.example.com"
+    aap_admin_user: "admin"
+    aap_admin_password: "changeme"
+    alia_url: "https://litellm-prod.apps.maas.redhatworkshops.io/v1"
+    alia_model: "granite-3-2-8b-instruct"
