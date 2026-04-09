@@ -18,7 +18,7 @@ The fix involves modifying the database configuration within the main *Ansible A
 
 In the *OpenShift Console*:
 
-. Navigate to *Operators → Installed Operators* and select your namespace.
+. Navigate to *Ecosystem → Installed Operators* and select your namespace.
 . Click on *Ansible Automation Platform* in the operator list.
 . Click the *AnsibleAutomationPlatform* tab and click on your AAP instance.
 . Switch to the *YAML* tab.

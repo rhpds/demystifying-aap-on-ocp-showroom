@@ -18,7 +18,7 @@ The fix is to increase the resource requests and limits for the *Hub Content* wo
 
 In the *OpenShift Console*:
 
-. Navigate to *Operators → Installed Operators* and select your namespace.
+. Navigate to *Ecosystem → Installed Operators* and select your namespace.
 . Click on *Ansible Automation Platform* in the operator list.
 . Click the *AnsibleAutomationPlatform* tab and click on your AAP instance.
 . Switch to the *YAML* tab and modify the `spec.hub.content.resource_requirements` section:
