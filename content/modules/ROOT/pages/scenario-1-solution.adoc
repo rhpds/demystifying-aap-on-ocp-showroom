@@ -20,7 +20,13 @@ The fix involves modifying the main *Ansible Automation Platform Custom Resource
 
 If you don't specify a storage class, the operator will use the cluster default storage class. In this case the default storage class is RWO storage; Automation Hub requires RWX storage.
 
-In the *OpenShift Console*, navigate to *Operators → Installed Operators → Ansible Automation Platform* and open your AAP instance. Switch to the *YAML* view and update the `file_storage_storage_class` field in the Hub section:
+In the *OpenShift Console*:
+
+. Navigate to *Operators → Installed Operators* and select your namespace from the dropdown.
+. Click on *Ansible Automation Platform* in the operator list.
+. Click the *AnsibleAutomationPlatform* tab to see your CR instances.
+. Click on your AAP instance (named `{user}-aap`).
+. Switch to the *YAML* tab and update the `file_storage_storage_class` field in the Hub section:
 
 [source,yaml]
 ----
