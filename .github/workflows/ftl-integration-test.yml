@@ -1,0 +1,210 @@
+---
+# FTL Integration Test — Pre-Summit E2E Gate
+#
+# PURPOSE:
+#   Validates that all 6 scenario solve/validate playbooks work correctly
+#   against a real RHDP-provisioned lab environment before Summit.
+#
+# PRE-CONDITIONS (must be done manually before running):
+#   1. Order an RHDP lab for this content
+#   2. Wait for provisioning email with Showroom URL and bastion credentials
+#   3. Add BASTION_SSH_KEY to GitHub repo secrets (Settings > Secrets > Actions)
+#   4. Run this workflow via: Actions > FTL Integration Test > Run workflow
+#
+# REQUIRED SECRET:
+#   BASTION_SSH_KEY — private SSH key for bastion access (full PEM contents)
+#
+# WORKFLOW INPUTS (provided at run time):
+#   showroom_url  — e.g. https://showroom-abc123-1.apps.ocpvdev01.rhdp.net
+#   bastion_host  — e.g. bastion.abc123.example.opentlc.com
+#   bastion_user  — SSH user (default: devops)
+
+name: FTL Integration Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      showroom_url:
+        description: 'Showroom URL (e.g. https://showroom-abc123-1.apps.ocpvdev01.rhdp.net)'
+        required: true
+        type: string
+      bastion_host:
+        description: 'Bastion hostname'
+        required: true
+        type: string
+      bastion_user:
+        description: 'Bastion SSH user'
+        required: true
+        default: 'devops'
+        type: string
+
+jobs:
+  integration-test:
+    name: E2E Integration Test — All Scenarios
+    runs-on: ubuntu-latest
+    env:
+      SHOWROOM: ${{ inputs.showroom_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ inputs.bastion_host }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Verify Showroom runner is reachable
+        run: |
+          echo "Checking Showroom runner API..."
+          curl -sk --max-time 15 $SHOWROOM/runner/api/config | python3 -m json.tool
+          echo "Runner API is reachable"
+
+      - name: Verify all stages are detected
+        run: |
+          STAGES=$(curl -sk $SHOWROOM/runner/api/config)
+          FAILED=0
+          for module in module-02 module-03 module-04 module-05 module-06 module-07; do
+            for stage in validation solve; do
+              if echo "$STAGES" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          modules = data.get('modules', [])
+          found = any(m.get('name') == '$module' and '$stage' in m.get('scripts', []) for m in modules)
+          sys.exit(0 if found else 1)
+          " 2>/dev/null; then
+                echo "[OK] $module/$stage detected"
+              else
+                echo "[X]  $module/$stage NOT detected — check .sh stubs and runner restart"
+                FAILED=1
+              fi
+            done
+          done
+          if [ $FAILED -eq 1 ]; then
+            echo "Stage detection failed. Aborting."
+            exit 1
+          fi
+
+      - name: Run integration tests for all scenarios
+        run: |
+          PASS=0
+          FAIL=0
+
+          # Start GitHub Actions job summary table
+          {
+            echo "## FTL Integration Test Results"
+            echo ""
+            echo "| Scenario | Break | Validate(fail) | Solve | Validate(pass) | Result |"
+            echo "|----------|-------|----------------|-------|----------------|--------|"
+          } >> $GITHUB_STEP_SUMMARY
+
+          for scenario_num in 2 3 4 5 6 7; do
+            module="module-0${scenario_num}"
+            echo ""
+            echo "============================================"
+            echo "Testing $module (Scenario $scenario_num)"
+            echo "============================================"
+
+            BREAK_STATUS="✅"
+            VFAIL_STATUS="❌"
+            SOLVE_STATUS="❌"
+            VPASS_STATUS="❌"
+            SCENARIO_RESULT="FAIL"
+
+            # Step 1: Break the scenario via bastion
+            echo "--- Breaking scenario $scenario_num ---"
+            if ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+                ${{ inputs.bastion_user }}@${{ inputs.bastion_host }} \
+                "cd rh1-aap-troubleshooting && echo '$scenario_num' | ansible-playbook site.yml -t break"; then
+              echo "[OK] Break succeeded"
+            else
+              echo "[X]  Break failed — skipping scenario $scenario_num"
+              BREAK_STATUS="❌"
+              echo "| $module | $BREAK_STATUS | — | — | — | SKIP |" >> $GITHUB_STEP_SUMMARY
+              FAIL=$((FAIL + 1))
+              continue
+            fi
+
+            # Step 2: Trigger validation — expect FAIL
+            echo "--- Triggering validation (expect FAIL) ---"
+            JOB_RESPONSE=$(curl -sk -X POST $SHOWROOM/runner/api/$module/validation)
+            JOB_ID=$(echo $JOB_RESPONSE | python3 -c "import sys,json; print(json.load(sys.stdin).get('job_id',''))" 2>/dev/null)
+            echo "Job ID: $JOB_ID"
+            sleep 30
+            RESULT_STATUS=$(curl -sk $SHOWROOM/runner/api/job/$JOB_ID | \
+              python3 -c "import sys,json; print(json.load(sys.stdin).get('status','unknown'))" 2>/dev/null)
+            echo "Validation status: $RESULT_STATUS"
+            if [ "$RESULT_STATUS" = "failed" ]; then
+              echo "[OK] Validation correctly detected broken state"
+              VFAIL_STATUS="✅"
+            else
+              echo "[X]  Validation should have failed but got: $RESULT_STATUS"
+            fi
+
+            # Step 3: Trigger solve
+            echo "--- Triggering solve ---"
+            JOB_RESPONSE=$(curl -sk -X POST $SHOWROOM/runner/api/$module/solve)
+            JOB_ID=$(echo $JOB_RESPONSE | python3 -c "import sys,json; print(json.load(sys.stdin).get('job_id',''))" 2>/dev/null)
+            echo "Job ID: $JOB_ID"
+            sleep 60
+            RESULT_STATUS=$(curl -sk $SHOWROOM/runner/api/job/$JOB_ID | \
+              python3 -c "import sys,json; print(json.load(sys.stdin).get('status','unknown'))" 2>/dev/null)
+            echo "Solve status: $RESULT_STATUS"
+            if [ "$RESULT_STATUS" = "successful" ]; then
+              echo "[OK] Solve completed successfully"
+              SOLVE_STATUS="✅"
+            else
+              echo "[X]  Solve failed with status: $RESULT_STATUS"
+            fi
+
+            # Step 4: Wait for pods to stabilize, then re-validate — expect PASS
+            echo "--- Waiting 120s for pods to stabilize ---"
+            sleep 120
+            echo "--- Triggering validation (expect PASS) ---"
+            JOB_RESPONSE=$(curl -sk -X POST $SHOWROOM/runner/api/$module/validation)
+            JOB_ID=$(echo $JOB_RESPONSE | python3 -c "import sys,json; print(json.load(sys.stdin).get('job_id',''))" 2>/dev/null)
+            echo "Job ID: $JOB_ID"
+            sleep 60
+            RESULT_STATUS=$(curl -sk $SHOWROOM/runner/api/job/$JOB_ID | \
+              python3 -c "import sys,json; print(json.load(sys.stdin).get('status','unknown'))" 2>/dev/null)
+            echo "Post-solve validation status: $RESULT_STATUS"
+            if [ "$RESULT_STATUS" = "successful" ]; then
+              echo "[OK] Validation passed after solve"
+              VPASS_STATUS="✅"
+              SCENARIO_RESULT="PASS"
+              PASS=$((PASS + 1))
+            else
+              echo "[X]  Validation did not pass after solve (status: $RESULT_STATUS)"
+              FAIL=$((FAIL + 1))
+            fi
+
+            # Step 5: Reset scenario for next run
+            echo "--- Resetting scenario $scenario_num ---"
+            ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+              ${{ inputs.bastion_user }}@${{ inputs.bastion_host }} \
+              "cd rh1-aap-troubleshooting && echo '$scenario_num' | ansible-playbook site.yml -t fix" || true
+
+            echo "| $module | $BREAK_STATUS | $VFAIL_STATUS | $SOLVE_STATUS | $VPASS_STATUS | $SCENARIO_RESULT |" >> $GITHUB_STEP_SUMMARY
+          done
+
+          # Write summary footer
+          {
+            echo ""
+            echo "**Passed: $PASS / 6**"
+            if [ $FAIL -gt 0 ]; then
+              echo ""
+              echo "> ⚠️ $FAIL scenario(s) failed. Review logs above for details."
+            fi
+          } >> $GITHUB_STEP_SUMMARY
+
+          echo ""
+          echo "============================================"
+          echo "SUMMARY: Passed $PASS / 6"
+          echo "============================================"
+
+          if [ $FAIL -gt 0 ]; then
+            echo "FAILED: $FAIL scenario(s) did not pass end-to-end"
+            exit 1
+          fi
