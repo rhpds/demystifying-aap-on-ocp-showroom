@@ -1,0 +1,16 @@
+---
+- name: Run module stage via direct API calls
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    _module_dir: "{{ module_dir | default(module_directory | default('')) }}"
+
+  tasks:
+    - name: Load secrets (vault-decrypted via VAULT_PASSWORD env var)
+      ansible.builtin.include_vars: secrets.yaml
+      ignore_errors: true
+
+    - name: Include module tasks
+      ansible.builtin.include_tasks: "{{ _module_dir }}/{{ module_stage }}.yml"
