@@ -19,3 +19,49 @@ tabs:
     url: 'https://aap.example.com'
   - name: OpenShift Console
     url: 'https://console.example.com'
+
+antora:
+  name: modules
+  dir: www
+  modules:
+    - name: module-02
+      label: "Scenario #2: Automation Hub Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
+
+    - name: module-03
+      label: "Scenario #3: Gateway Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
+
+    - name: module-04
+      label: "Scenario #4: Gateway Memory Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
+
+    - name: module-05
+      label: "Scenario #5: Automation Hub Sync Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
+
+    - name: module-06
+      label: "Scenario #6: Automation Controller Job Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
+
+    - name: module-07
+      label: "Scenario #7: Ansible Lightspeed (ALIA) Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
