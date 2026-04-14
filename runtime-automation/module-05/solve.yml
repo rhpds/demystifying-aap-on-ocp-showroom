@@ -78,5 +78,6 @@
 
           Pods will restart with new limits. Click Next to validate.
         dest: "{{ job_info_dir }}/validation_failure.out"
+        mode: '0644'
       delegate_to: localhost
       when: job_info_dir is defined
