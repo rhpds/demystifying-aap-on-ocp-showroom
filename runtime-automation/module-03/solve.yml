@@ -1,0 +1,76 @@
+---
+- name: Solve Module 3 — Gateway Issues
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Get AnsibleAutomationPlatform CR
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+        validate_certs: false
+      register: r_aap_cr
+
+    - name: Set resource names
+      ansible.builtin.set_fact:
+        aap_cr_name: "{{ r_aap_cr.json.items[0].metadata.name }}"
+        postgres_service_name: "{{ r_aap_cr.json.items[0].metadata.name }}-aap-postgres-15"
+      when: r_aap_cr.json.items | length > 0
+
+    - name: Check if PostgreSQL Service exists
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/services/{{ postgres_service_name }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+        validate_certs: false
+        status_code: [200, 404]
+      register: r_postgres_check
+      when: postgres_service_name is defined
+
+    - name: Create PostgreSQL Service if missing
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/services"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: "{{ postgres_service_name }}"
+            namespace: aap-rh1
+            labels:
+              app.kubernetes.io/name: postgres
+          spec:
+            selector:
+              app.kubernetes.io/name: "{{ aap_cr_name }}-postgres-15"
+            ports:
+              - port: 5432
+                targetPort: 5432
+                protocol: TCP
+        validate_certs: false
+        status_code: [200, 201]
+      when:
+        - postgres_service_name is defined
+        - r_postgres_check.status | default(404) == 404
+
+    - name: Show completion message
+      ansible.builtin.copy:
+        content: |
+          [INFO]
+          [OK] Module 3 solved
+
+          Fixed:
+          - Created PostgreSQL Service: {{ postgres_service_name | default('') }}
+          - Gateway pods should now connect to database
+
+          Click Next to validate.
+        dest: "{{ job_info_dir }}/validation_failure.out"
+      delegate_to: localhost
+      when: job_info_dir is defined
