@@ -6,24 +6,48 @@ default_width: 30
 # Persist the URL state so browser refresh doesn't reset the UI
 persist_url_state: true
 
-# tabs:
-  # OCP Console
-  # - name: OCP Console
-  #   url: 'https://console-openshift-console.${DOMAIN}'
+antora:
+  name: modules
+  dir: www
+  modules:
+    - name: module-02
+      label: "Scenario #2: Automation Hub Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
 
-  # Single terminal
-  # - name: Bastion
-  #   path: /wetty
-  #   port: 443
+    - name: module-03
+      label: "Scenario #3: Gateway Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
 
-  # Vertical split terminals
-  # - name: Bastion
-  #   path: /wetty
-  #   port: 443
-  #   secondary_name: Bastion
-  #   secondary_path: /wetty
-  #   secondary_port: 443
+    - name: module-04
+      label: "Scenario #4: Gateway Memory Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
 
-  # External page
-  # - name: Llamastack Docs
-  #   url: 'https://llama-stack.readthedocs.io/en/latest/'
+    - name: module-05
+      label: "Scenario #5: Automation Hub Sync Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
+
+    - name: module-06
+      label: "Scenario #6: Automation Controller Job Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
+
+    - name: module-07
+      label: "Scenario #7: Ansible Lightspeed (ALIA) Issues"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
