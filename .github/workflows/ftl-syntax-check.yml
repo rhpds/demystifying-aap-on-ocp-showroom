@@ -1,0 +1,65 @@
+---
+name: FTL Syntax Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'runtime-automation/**'
+      - 'ui-config.yml'
+      - '.github/workflows/ftl-syntax-check.yml'
+  pull_request:
+    paths:
+      - 'runtime-automation/**'
+      - 'ui-config.yml'
+
+jobs:
+  syntax-check:
+    name: Lint and Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install tools
+        run: pip install ansible-core ansible-lint yamllint
+
+      - name: yamllint — runtime-automation
+        run: yamllint -c runtime-automation/.yamllint runtime-automation/
+
+      - name: yamllint — ui-config.yml
+        run: yamllint ui-config.yml
+
+      - name: ansible-lint — all playbooks
+        run: |
+          ansible-lint runtime-automation/main.yml \
+            runtime-automation/module-*/validation.yml \
+            runtime-automation/module-*/solve.yml
+
+      - name: Syntax check — all module/stage combinations
+        run: |
+          for module in module-02 module-03 module-04 module-05 module-06 module-07; do
+            for stage in validation solve; do
+              echo "=== syntax check: $module/$stage ==="
+              ansible-playbook --syntax-check runtime-automation/main.yml \
+                -e module_directory=$module \
+                -e module_stage=$stage
+            done
+          done
+
+      - name: Verify all stubs are executable
+        run: |
+          FAILED=0
+          for stub in runtime-automation/module-*/*-control.sh; do
+            if [ ! -x "$stub" ]; then
+              echo "ERROR: $stub is not executable"
+              FAILED=1
+            fi
+          done
+          if [ $FAILED -eq 1 ]; then exit 1; fi
+          echo "All stubs are executable"
