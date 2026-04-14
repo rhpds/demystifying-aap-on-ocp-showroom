@@ -33,7 +33,7 @@ jobs:
         run: yamllint -c runtime-automation/.yamllint runtime-automation/
 
       - name: yamllint — ui-config.yml
-        run: yamllint ui-config.yml
+        run: yamllint -c runtime-automation/.yamllint ui-config.yml
 
       - name: ansible-lint — all playbooks
         run: |
