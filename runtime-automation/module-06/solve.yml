@@ -1,9 +1,10 @@
 ---
-- name: Solve Module 6 — Controller Job Issues
-  hosts: localhost
-  connection: local
-  gather_facts: false
+# runtime-automation/module-06/solve.yml
+# Module 6: Controller Job Issues - Solver
 
+- name: Solve Module 6 - Controller Jobs
+  hosts: localhost
+  gather_facts: false
   tasks:
     - name: Get AnsibleAutomationPlatform CR
       ansible.builtin.uri:
@@ -14,12 +15,13 @@
         validate_certs: false
       register: r_aap_cr
 
-    - name: Set CR name
+    - name: Extract AAP CR name and Controller URL
       ansible.builtin.set_fact:
         aap_cr_name: "{{ r_aap_cr.json.items[0].metadata.name }}"
+        controller_host: "https://{{ r_aap_cr.json.items[0].metadata.name }}-controller-aap-rh1.{{ lookup('env', 'OPENSHIFT_CLUSTER_INGRESS_DOMAIN') }}"
       when: r_aap_cr.json.items | length > 0
 
-    - name: Get AAP admin password from secret
+    - name: Get AAP admin password
       ansible.builtin.uri:
         url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/secrets/{{ aap_cr_name }}-admin-password"
         method: GET
@@ -27,78 +29,62 @@
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
       register: r_admin_secret
-      when: aap_cr_name is defined
 
     - name: Decode admin password
       ansible.builtin.set_fact:
         aap_admin_password: "{{ r_admin_secret.json.data.password | b64decode }}"
-      when: r_admin_secret.json.data.password is defined
 
-    - name: Get all execution environments from Controller
+    - name: Get job templates from Controller API
       ansible.builtin.uri:
-        url: "https://control-https/api/controller/v2/execution_environments/"
-        method: GET
-        user: admin
-        password: "{{ aap_admin_password }}"
-        force_basic_auth: true
-        validate_certs: false
-      register: r_ees
-      when: aap_admin_password is defined
-
-    - name: Build list of valid EE IDs
-      ansible.builtin.set_fact:
-        valid_ee_ids: "{{ r_ees.json.results | map(attribute='id') | list }}"
-      when:
-        - r_ees.json.results is defined
-        - r_ees.json.results | length > 0
-
-    - name: Get job templates from Controller
-      ansible.builtin.uri:
-        url: "https://control-https/api/controller/v2/job_templates/"
+        url: "{{ controller_host }}/api/v2/job_templates/"
         method: GET
         user: admin
         password: "{{ aap_admin_password }}"
         force_basic_auth: true
         validate_certs: false
       register: r_job_templates
-      when: aap_admin_password is defined
 
-    - name: Find job templates using a non-existent EE
+    - name: Extract execution environment IDs
+      ansible.builtin.set_fact:
+        ee_ids: "{{ r_job_templates.json.results | map(attribute='execution_environment') | select('number') | list }}"
+
+    - name: Find most common EE ID (the valid one)
+      ansible.builtin.set_fact:
+        ee_counts: >-
+          {{
+            ee_ids | community.general.counter
+          }}
+
+    - name: Get valid EE ID
+      ansible.builtin.set_fact:
+        valid_ee_id: "{{ (ee_counts | dict2items | sort(attribute='value', reverse=true) | first).key }}"
+      when: ee_counts | length > 0
+
+    - name: Find broken job templates
       ansible.builtin.set_fact:
         broken_templates: >-
           {{
             r_job_templates.json.results |
             selectattr('execution_environment', 'defined') |
-            selectattr('execution_environment', 'ne', None) |
-            rejectattr('execution_environment', 'in', valid_ee_ids) | list
+            selectattr('execution_environment', 'ne', valid_ee_id | int) | list
           }}
-      when:
-        - r_job_templates.json.results is defined
-        - valid_ee_ids is defined
 
-    - name: Get default EE (first valid EE)
-      ansible.builtin.set_fact:
-        default_ee_id: "{{ valid_ee_ids | first }}"
-      when:
-        - valid_ee_ids is defined
-        - valid_ee_ids | length > 0
-
-    - name: Fix broken job templates to use valid EE
+    - name: Update broken job templates to use valid EE
       ansible.builtin.uri:
-        url: "https://control-https/api/controller/v2/job_templates/{{ item.id }}/"
+        url: "{{ controller_host }}/api/v2/job_templates/{{ item.id }}/"
         method: PATCH
         user: admin
         password: "{{ aap_admin_password }}"
         force_basic_auth: true
+        headers:
+          Content-Type: "application/json"
         body_format: json
-        body: "{{ {'execution_environment': default_ee_id | int} }}"
+        body:
+          execution_environment: "{{ valid_ee_id | int }}"
         validate_certs: false
         status_code: [200, 201]
-      loop: "{{ broken_templates | default([]) }}"
-      when:
-        - broken_templates is defined
-        - broken_templates | length > 0
-        - default_ee_id is defined
+      loop: "{{ broken_templates }}"
+      when: broken_templates | length > 0
 
     - name: Show completion message
       ansible.builtin.copy:
@@ -107,10 +93,10 @@
           [OK] Module 6 solved
 
           Fixed:
-          - Updated {{ broken_templates | default([]) | length }} job template(s) to use a valid Execution Environment
+          - Updated {{ broken_templates | length }} job template(s) to use valid Execution Environment
+          - All templates now use EE ID: {{ valid_ee_id }}
 
-          Job templates should now launch successfully. Click Next to validate.
+          Job templates should now run successfully. Click Next to validate.
         dest: "{{ job_info_dir }}/validation_failure.out"
-        mode: '0644'
       delegate_to: localhost
       when: job_info_dir is defined

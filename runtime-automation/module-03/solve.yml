@@ -1,9 +1,10 @@
 ---
-- name: Solve Module 3 — Gateway Issues
-  hosts: localhost
-  connection: local
-  gather_facts: false
+# runtime-automation/module-03/solve.yml
+# Module 3: Gateway Issues - Solver
 
+- name: Solve Module 3 - Gateway Service
+  hosts: localhost
+  gather_facts: false
   tasks:
     - name: Get AnsibleAutomationPlatform CR
       ansible.builtin.uri:
@@ -29,7 +30,6 @@
         validate_certs: false
         status_code: [200, 404]
       register: r_postgres_check
-      when: postgres_service_name is defined
 
     - name: Create PostgreSQL Service if missing
       ansible.builtin.uri:
@@ -56,9 +56,7 @@
                 protocol: TCP
         validate_certs: false
         status_code: [200, 201]
-      when:
-        - postgres_service_name is defined
-        - r_postgres_check.status | default(404) == 404
+      when: r_postgres_check.status == 404
 
     - name: Show completion message
       ansible.builtin.copy:
@@ -67,11 +65,10 @@
           [OK] Module 3 solved
 
           Fixed:
-          - Created PostgreSQL Service: {{ postgres_service_name | default('') }}
+          - Created PostgreSQL Service: {{ postgres_service_name }}
           - Gateway pods should now connect to database
 
           Click Next to validate.
         dest: "{{ job_info_dir }}/validation_failure.out"
-        mode: '0644'
       delegate_to: localhost
       when: job_info_dir is defined

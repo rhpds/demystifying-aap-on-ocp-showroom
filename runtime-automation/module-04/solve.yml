@@ -1,9 +1,10 @@
 ---
-- name: Solve Module 4 — Gateway Memory Issues
-  hosts: localhost
-  connection: local
-  gather_facts: false
+# runtime-automation/module-04/solve.yml
+# Module 4: Gateway Pod Issues - Solver
 
+- name: Solve Module 4 - Gateway Memory
+  hosts: localhost
+  gather_facts: false
   tasks:
     - name: Get AnsibleAutomationPlatform CR
       ansible.builtin.uri:
@@ -14,12 +15,12 @@
         validate_certs: false
       register: r_aap_cr
 
-    - name: Set CR name
+    - name: Extract AAP CR name
       ansible.builtin.set_fact:
         aap_cr_name: "{{ r_aap_cr.json.items[0].metadata.name }}"
       when: r_aap_cr.json.items | length > 0
 
-    - name: Patch AAP CR to increase API memory
+    - name: Patch AAP CR to increase Gateway API memory
       ansible.builtin.uri:
         url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms/{{ aap_cr_name }}"
         method: PATCH
@@ -29,19 +30,17 @@
         body_format: json
         body:
           spec:
-            api:
-              resource_requirements:
-                limits:
-                  memory: "1Gi"
-                requests:
-                  memory: "750Mi"
+            gateway:
+              api:
+                resource_requirements:
+                  limits:
+                    memory: "1Gi"
         validate_certs: false
         status_code: [200, 201]
-      when: aap_cr_name is defined
 
     - name: Get PostgreSQL StatefulSet
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/apps/v1/namespaces/aap-rh1/statefulsets?labelSelector=app.kubernetes.io%2Fname%3Dpostgres"
+        url: "https://kubernetes.default.svc/apis/apps/v1/namespaces/aap-rh1/statefulsets?labelSelector=app.kubernetes.io%2Fcomponent%3Dpostgres"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
@@ -55,9 +54,8 @@
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
-        status_code: [200, 202, 404]
-      loop: "{{ r_postgres_sts.json.items }}"
-      when: r_postgres_sts.json.items | length > 0
+        status_code: [200, 404]
+      loop: "{{ r_postgres_sts.json.items | default([]) }}"
 
     - name: Show completion message
       ansible.builtin.copy:
@@ -66,11 +64,11 @@
           [OK] Module 4 solved
 
           Fixed:
-          - Increased API memory limit to 1Gi / requests 750Mi
-          - Deleted PostgreSQL StatefulSet (operator will recreate it)
+          - Updated Gateway API memory limit to 1Gi
+          - Deleted PostgreSQL StatefulSet (operator will recreate)
 
-          Pods should restart automatically. Click Next to validate.
+          The operator will recreate the StatefulSet and Gateway pods.
+          This may take 2-3 minutes. Click Next to validate.
         dest: "{{ job_info_dir }}/validation_failure.out"
-        mode: '0644'
       delegate_to: localhost
       when: job_info_dir is defined

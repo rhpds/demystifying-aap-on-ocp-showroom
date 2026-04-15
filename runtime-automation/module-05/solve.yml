@@ -1,27 +1,28 @@
 ---
-- name: Solve Module 5 — Automation Hub Sync Issues
-  hosts: localhost
-  connection: local
-  gather_facts: false
+# runtime-automation/module-05/solve.yml
+# Module 5: Hub Memory/Storage Issues - Solver
 
+- name: Solve Module 5 - Hub Resources
+  hosts: localhost
+  gather_facts: false
   tasks:
-    - name: Get AnsibleAutomationPlatform CR
+    - name: Get AutomationHub CR
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms"
+        url: "https://kubernetes.default.svc/apis/automationhub.ansible.com/v1beta1/namespaces/aap-rh1/automationhubs"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
-      register: r_aap_cr
+      register: r_ah_cr
 
-    - name: Set CR name
+    - name: Extract Hub name
       ansible.builtin.set_fact:
-        aap_cr_name: "{{ r_aap_cr.json.items[0].metadata.name }}"
-      when: r_aap_cr.json.items | length > 0
+        ah_name: "{{ r_ah_cr.json.items[0].metadata.name }}"
+      when: r_ah_cr.json.items | length > 0
 
-    - name: Patch AAP CR to increase Hub memory to 8Gi
+    - name: Patch AutomationHub CR to increase memory
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms/{{ aap_cr_name }}"
+        url: "https://kubernetes.default.svc/apis/automationhub.ansible.com/v1beta1/namespaces/aap-rh1/automationhubs/{{ ah_name }}"
         method: PATCH
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
@@ -29,26 +30,23 @@
         body_format: json
         body:
           spec:
-            hub:
+            web:
               resource_requirements:
                 limits:
                   memory: "8Gi"
-                requests:
-                  memory: "4Gi"
         validate_certs: false
         status_code: [200, 201]
-      when: aap_cr_name is defined
 
-    - name: Get Hub content PVC
+    - name: Get Hub PVC
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/persistentvolumeclaims?labelSelector=app.kubernetes.io%2Fcomponent%3Dcontent"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/persistentvolumeclaims?labelSelector=app.kubernetes.io%2Fcomponent%3Dstorage"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
       register: r_hub_pvc
 
-    - name: Expand Hub content PVC to 10Gi
+    - name: Expand PVC to 10Gi
       ansible.builtin.uri:
         url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/persistentvolumeclaims/{{ item.metadata.name }}"
         method: PATCH
@@ -63,8 +61,7 @@
                 storage: "10Gi"
         validate_certs: false
         status_code: [200, 201]
-      loop: "{{ r_hub_pvc.json.items }}"
-      when: r_hub_pvc.json.items | length > 0
+      loop: "{{ r_hub_pvc.json.items | default([]) }}"
 
     - name: Show completion message
       ansible.builtin.copy:
@@ -73,11 +70,11 @@
           [OK] Module 5 solved
 
           Fixed:
-          - Increased Hub memory to 8Gi limit / 4Gi request
-          - Expanded Hub content PVC to 10Gi
+          - Updated Hub web memory limit to 8Gi
+          - Expanded PVC to 10Gi
 
-          Pods will restart with new limits. Click Next to validate.
+          The operator will restart Hub pods with new memory limits.
+          This may take 2-3 minutes. Click Next to validate.
         dest: "{{ job_info_dir }}/validation_failure.out"
-        mode: '0644'
       delegate_to: localhost
       when: job_info_dir is defined
