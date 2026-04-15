@@ -22,8 +22,9 @@ The correct LLM connection details for your environment are:
 [cols="1,2",options="header"]
 |===
 | Field | Value
-| *Model API URL* | https://litellm-prod.apps.maas.redhatworkshops.io/v1
+| *Model API URL* | {alia_url}
 | *Model Name* | {alia_model}
+| *API Token* | {alia_token}
 |===
 
 == Troubleshooting
