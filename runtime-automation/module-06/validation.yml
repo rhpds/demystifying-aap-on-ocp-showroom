@@ -1,5 +1,5 @@
 ---
-- name: Validate Module 6 — Controller Job Issues
+- name: Validate Module 7 — Lightspeed Issues
   hosts: localhost
   connection: local
   gather_facts: false
@@ -15,15 +15,22 @@
         status_code: [200, 404]
       register: r_namespace
 
-    - name: Get Controller task pods
+    - name: Get chatbot configuration secret
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fcomponent%3Dtask"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/secrets/chatbot-configuration-secret"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_controller_pods
+      register: r_chatbot_secret
+
+    - name: Decode model name from secret
+      ansible.builtin.set_fact:
+        model_name: "{{ r_chatbot_secret.json.data.model_name | b64decode }}"
+      when:
+        - r_chatbot_secret.status == 200
+        - r_chatbot_secret.json.data.model_name is defined
 
     - name: Get all pods in aap-rh1
       ansible.builtin.uri:
@@ -35,41 +42,49 @@
         status_code: [200, 404]
       register: r_all_pods
 
-    - name: Filter for automation-job pods with ImagePullBackOff
+    - name: Filter for Lightspeed API pods
       ansible.builtin.set_fact:
-        failed_job_pods: >-
+        lightspeed_pods: >-
           {{
-            r_all_pods.json.items |
-            selectattr('metadata.name', 'match', '^automation-job-.*') |
-            selectattr('status.containerStatuses', 'defined') |
+            r_all_pods.json.items | selectattr('metadata.name', 'match', '.*lightspeed-api-.*') | list
+            if r_all_pods.status == 200
+            else []
+          }}
+
+    - name: Check Running and CrashLoopBackOff counts
+      ansible.builtin.set_fact:
+        running_count: "{{ lightspeed_pods | selectattr('status.phase', 'equalto', 'Running') | list | length }}"
+        crashing_count: >-
+          {{
+            lightspeed_pods | selectattr('status.containerStatuses', 'defined') |
             map(attribute='status.containerStatuses') | flatten |
             selectattr('state.waiting.reason', 'defined') |
-            selectattr('state.waiting.reason', 'match', '.*ImagePull.*') | list
+            selectattr('state.waiting.reason', 'equalto', 'CrashLoopBackOff') | list | length
           }}
 
     - name: Evaluate checks
       ansible.builtin.set_fact:
         namespace_exists: "{{ r_namespace.status == 200 }}"
-        controller_running: >-
+        correct_model: "{{ model_name | default('') == 'granite-3-2-8b-instruct' }}"
+        lightspeed_running: >-
           {{
-            r_controller_pods.status == 200 and
-            r_controller_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+            (running_count | int) > 0 and
+            (crashing_count | int) == 0
           }}
-        no_image_pull_errors: "{{ (failed_job_pods | default([])) | length == 0 }}"
 
     - name: Set validation output
       ansible.builtin.set_fact:
         validation_output: |
-          Module 6: Controller Job Issues
-          ================================
+          Module 7: Lightspeed Issues
+          ============================
           {{ '[OK]' if namespace_exists else '[X] ' }} Namespace aap-rh1 exists
-          {{ '[OK]' if controller_running else '[X] ' }} Controller pods Running
-          {{ '[OK]' if no_image_pull_errors else '[X] ' }} No ImagePullBackOff errors on job pods ({{ failed_job_pods | default([]) | length }} found)
+          {{ '[OK]' if correct_model else '[X] ' }} Chatbot secret model_name = granite-3-2-8b-instruct (current: {{ model_name | default('not set') }})
+          {{ '[OK]' if lightspeed_running else '[X] ' }} Lightspeed API pod Running ({{ running_count }} running, {{ crashing_count }} crashing)
         validation_passed: >-
           {{
             namespace_exists and
-            controller_running and
-            no_image_pull_errors
+            correct_model and
+            lightspeed_running
           }}
 
     - name: Write failure details

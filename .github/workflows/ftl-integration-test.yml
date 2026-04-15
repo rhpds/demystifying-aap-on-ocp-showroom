@@ -100,7 +100,7 @@ jobs:
             echo "|----------|-------|----------------|-------|----------------|--------|"
           } >> $GITHUB_STEP_SUMMARY
 
-          for scenario_num in 2 3 4 5 6 7; do
+          for scenario_num in 1 2 3 4 5 6; do
             module="module-0${scenario_num}"
             echo ""
             echo "============================================"

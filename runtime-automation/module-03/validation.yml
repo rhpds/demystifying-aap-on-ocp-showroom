@@ -1,5 +1,5 @@
 ---
-- name: Validate Module 3 — Gateway Issues
+- name: Validate Module 4 — Gateway Memory Issues
   hosts: localhost
   connection: local
   gather_facts: false
@@ -25,23 +25,24 @@
         status_code: [200, 404]
       register: r_aap_cr
 
-    - name: Set postgres service name
+    - name: Check API memory limits
       ansible.builtin.set_fact:
-        postgres_service_name: "{{ r_aap_cr.json.items[0].metadata.name }}-aap-postgres-15"
-      when:
-        - r_aap_cr.status == 200
-        - r_aap_cr.json.items | length > 0
+        api_memory_limit: >-
+          {{
+            r_aap_cr.json.items[0].spec.api.resource_requirements.limits.memory | default('0Gi')
+            if r_aap_cr.json.items | length > 0
+            else '0Gi'
+          }}
 
-    - name: Get PostgreSQL Service
+    - name: Get PostgreSQL pods
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/services/{{ postgres_service_name | default('') }}"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Dpostgres"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_postgres_svc
-      when: postgres_service_name is defined
+      register: r_postgres_pods
 
     - name: Get Gateway pods
       ansible.builtin.uri:
@@ -56,8 +57,13 @@
     - name: Evaluate checks
       ansible.builtin.set_fact:
         namespace_exists: "{{ r_namespace.status == 200 }}"
-        postgres_svc_exists: "{{ r_postgres_svc.status | default(404) == 200 }}"
-        gateway_pods_running: >-
+        memory_increased: "{{ api_memory_limit is version('1Gi', '>=') }}"
+        postgres_running: >-
+          {{
+            r_postgres_pods.status == 200 and
+            r_postgres_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+          }}
+        gateway_running: >-
           {{
             r_gateway_pods.status == 200 and
             r_gateway_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
@@ -66,16 +72,18 @@
     - name: Set validation output
       ansible.builtin.set_fact:
         validation_output: |
-          Module 3: Gateway Issues
-          ========================
+          Module 4: Gateway Memory Issues
+          ================================
           {{ '[OK]' if namespace_exists else '[X] ' }} Namespace aap-rh1 exists
-          {{ '[OK]' if postgres_svc_exists else '[X] ' }} PostgreSQL Service {{ postgres_service_name | default('') }} exists
-          {{ '[OK]' if gateway_pods_running else '[X] ' }} Gateway pod Running
+          {{ '[OK]' if memory_increased else '[X] ' }} API memory limit ≥ 1Gi (current: {{ api_memory_limit }})
+          {{ '[OK]' if postgres_running else '[X] ' }} PostgreSQL pod Running
+          {{ '[OK]' if gateway_running else '[X] ' }} Gateway pod Running
         validation_passed: >-
           {{
             namespace_exists and
-            postgres_svc_exists and
-            gateway_pods_running
+            memory_increased and
+            postgres_running and
+            gateway_running
           }}
 
     - name: Write failure details

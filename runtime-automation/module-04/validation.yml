@@ -1,5 +1,5 @@
 ---
-- name: Validate Module 4 — Gateway Memory Issues
+- name: Validate Module 5 — Automation Hub Sync Issues
   hosts: localhost
   connection: local
   gather_facts: false
@@ -25,65 +25,73 @@
         status_code: [200, 404]
       register: r_aap_cr
 
-    - name: Check API memory limits
+    - name: Check Hub memory limits
       ansible.builtin.set_fact:
-        api_memory_limit: >-
+        hub_memory_limit: >-
           {{
-            r_aap_cr.json.items[0].spec.api.resource_requirements.limits.memory | default('0Gi')
+            r_aap_cr.json.items[0].spec.hub.resource_requirements.limits.memory | default('0Gi')
             if r_aap_cr.json.items | length > 0
             else '0Gi'
           }}
 
-    - name: Get PostgreSQL pods
+    - name: Get Hub content PVC
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Dpostgres"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/persistentvolumeclaims?labelSelector=app.kubernetes.io%2Fcomponent%3Dcontent"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_postgres_pods
+      register: r_hub_pvc
 
-    - name: Get Gateway pods
+    - name: Check PVC size
+      ansible.builtin.set_fact:
+        pvc_size: >-
+          {{
+            r_hub_pvc.json.items[0].spec.resources.requests.storage | default('0Gi')
+            if r_hub_pvc.json.items | length > 0
+            else '0Gi'
+          }}
+
+    - name: Get Hub pods
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Daap-gateway"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Daap-hub"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_gateway_pods
+      register: r_hub_pods
 
     - name: Evaluate checks
       ansible.builtin.set_fact:
         namespace_exists: "{{ r_namespace.status == 200 }}"
-        memory_increased: "{{ api_memory_limit is version('1Gi', '>=') }}"
-        postgres_running: >-
+        memory_increased: "{{ hub_memory_limit is version('8Gi', '>=') }}"
+        pvc_expanded: "{{ pvc_size is version('10Gi', '>=') }}"
+        no_oom_pods: >-
           {{
-            r_postgres_pods.status == 200 and
-            r_postgres_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
-          }}
-        gateway_running: >-
-          {{
-            r_gateway_pods.status == 200 and
-            r_gateway_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+            r_hub_pods.status == 200 and
+            (r_hub_pods.json.items | selectattr('status.containerStatuses', 'defined') |
+            map(attribute='status.containerStatuses') | flatten |
+            selectattr('lastState.terminated.reason', 'defined') |
+            selectattr('lastState.terminated.reason', 'equalto', 'OOMKilled') | list | length) == 0
           }}
 
     - name: Set validation output
       ansible.builtin.set_fact:
         validation_output: |
-          Module 4: Gateway Memory Issues
-          ================================
+          Module 5: Automation Hub Sync Issues
+          ======================================
           {{ '[OK]' if namespace_exists else '[X] ' }} Namespace aap-rh1 exists
-          {{ '[OK]' if memory_increased else '[X] ' }} API memory limit ≥ 1Gi (current: {{ api_memory_limit }})
-          {{ '[OK]' if postgres_running else '[X] ' }} PostgreSQL pod Running
-          {{ '[OK]' if gateway_running else '[X] ' }} Gateway pod Running
+          {{ '[OK]' if memory_increased else '[X] ' }} Hub memory limit ≥ 8Gi (current: {{ hub_memory_limit }})
+          {{ '[OK]' if pvc_expanded else '[X] ' }} Hub content PVC ≥ 10Gi (current: {{ pvc_size }})
+          {{ '[OK]' if no_oom_pods else '[X] ' }} No OOMKilled Hub pods
         validation_passed: >-
           {{
             namespace_exists and
             memory_increased and
-            postgres_running and
-            gateway_running
+            pvc_expanded and
+            no_oom_pods
           }}
 
     - name: Write failure details

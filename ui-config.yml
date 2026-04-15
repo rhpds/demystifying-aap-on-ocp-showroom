@@ -24,43 +24,43 @@ antora:
   name: modules
   dir: www
   modules:
+    - name: module-01
+      label: "Scenario 1: Automation Hub storage issue"
+      solveButton: true
+      scripts:
+        - solve
+        - validation
+
     - name: module-02
-      label: "Scenario #2: Automation Hub Issues"
+      label: "Scenario 2: Gateway & Controller issues"
       solveButton: true
       scripts:
         - solve
         - validation
 
     - name: module-03
-      label: "Scenario #3: Gateway Issues"
+      label: "Scenario 3: Node selector & resource issues"
       solveButton: true
       scripts:
         - solve
         - validation
 
     - name: module-04
-      label: "Scenario #4: Gateway Memory Issues"
+      label: "Scenario 4: Execution Environment credentials"
       solveButton: true
       scripts:
         - solve
         - validation
 
     - name: module-05
-      label: "Scenario #5: Automation Hub Sync Issues"
+      label: "Scenario 5: Automation Hub sync issues"
       solveButton: true
       scripts:
         - solve
         - validation
 
     - name: module-06
-      label: "Scenario #6: Automation Controller Job Issues"
-      solveButton: true
-      scripts:
-        - solve
-        - validation
-
-    - name: module-07
-      label: "Scenario #7: Ansible Lightspeed (ALIA) Issues"
+      label: "Scenario 6: ALIA — Ansible Lightspeed issues"
       solveButton: true
       scripts:
         - solve

@@ -1,5 +1,5 @@
 ---
-- name: Validate Module 5 — Automation Hub Sync Issues
+- name: Validate Module 6 — Controller Job Issues
   hosts: localhost
   connection: local
   gather_facts: false
@@ -15,83 +15,61 @@
         status_code: [200, 404]
       register: r_namespace
 
-    - name: Get AnsibleAutomationPlatform CR
+    - name: Get Controller task pods
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fcomponent%3Dtask"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_aap_cr
+      register: r_controller_pods
 
-    - name: Check Hub memory limits
+    - name: Get all pods in aap-rh1
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+        validate_certs: false
+        status_code: [200, 404]
+      register: r_all_pods
+
+    - name: Filter for automation-job pods with ImagePullBackOff
       ansible.builtin.set_fact:
-        hub_memory_limit: >-
+        failed_job_pods: >-
           {{
-            r_aap_cr.json.items[0].spec.hub.resource_requirements.limits.memory | default('0Gi')
-            if r_aap_cr.json.items | length > 0
-            else '0Gi'
+            r_all_pods.json.items |
+            selectattr('metadata.name', 'match', '^automation-job-.*') |
+            selectattr('status.containerStatuses', 'defined') |
+            map(attribute='status.containerStatuses') | flatten |
+            selectattr('state.waiting.reason', 'defined') |
+            selectattr('state.waiting.reason', 'match', '.*ImagePull.*') | list
           }}
-
-    - name: Get Hub content PVC
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/persistentvolumeclaims?labelSelector=app.kubernetes.io%2Fcomponent%3Dcontent"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-        validate_certs: false
-        status_code: [200, 404]
-      register: r_hub_pvc
-
-    - name: Check PVC size
-      ansible.builtin.set_fact:
-        pvc_size: >-
-          {{
-            r_hub_pvc.json.items[0].spec.resources.requests.storage | default('0Gi')
-            if r_hub_pvc.json.items | length > 0
-            else '0Gi'
-          }}
-
-    - name: Get Hub pods
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Daap-hub"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-        validate_certs: false
-        status_code: [200, 404]
-      register: r_hub_pods
 
     - name: Evaluate checks
       ansible.builtin.set_fact:
         namespace_exists: "{{ r_namespace.status == 200 }}"
-        memory_increased: "{{ hub_memory_limit is version('8Gi', '>=') }}"
-        pvc_expanded: "{{ pvc_size is version('10Gi', '>=') }}"
-        no_oom_pods: >-
+        controller_running: >-
           {{
-            r_hub_pods.status == 200 and
-            (r_hub_pods.json.items | selectattr('status.containerStatuses', 'defined') |
-            map(attribute='status.containerStatuses') | flatten |
-            selectattr('lastState.terminated.reason', 'defined') |
-            selectattr('lastState.terminated.reason', 'equalto', 'OOMKilled') | list | length) == 0
+            r_controller_pods.status == 200 and
+            r_controller_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
           }}
+        no_image_pull_errors: "{{ (failed_job_pods | default([])) | length == 0 }}"
 
     - name: Set validation output
       ansible.builtin.set_fact:
         validation_output: |
-          Module 5: Automation Hub Sync Issues
-          ======================================
+          Module 6: Controller Job Issues
+          ================================
           {{ '[OK]' if namespace_exists else '[X] ' }} Namespace aap-rh1 exists
-          {{ '[OK]' if memory_increased else '[X] ' }} Hub memory limit ≥ 8Gi (current: {{ hub_memory_limit }})
-          {{ '[OK]' if pvc_expanded else '[X] ' }} Hub content PVC ≥ 10Gi (current: {{ pvc_size }})
-          {{ '[OK]' if no_oom_pods else '[X] ' }} No OOMKilled Hub pods
+          {{ '[OK]' if controller_running else '[X] ' }} Controller pods Running
+          {{ '[OK]' if no_image_pull_errors else '[X] ' }} No ImagePullBackOff errors on job pods ({{ failed_job_pods | default([]) | length }} found)
         validation_passed: >-
           {{
             namespace_exists and
-            memory_increased and
-            pvc_expanded and
-            no_oom_pods
+            controller_running and
+            no_image_pull_errors
           }}
 
     - name: Write failure details

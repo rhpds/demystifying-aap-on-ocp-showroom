@@ -1,13 +1,13 @@
 ---
-- name: Validate Module 2 — Automation Hub Storage
+- name: Validate Module 3 — Gateway Issues
   hosts: localhost
   connection: local
   gather_facts: false
 
   tasks:
-    - name: Get namespace scenario-2
+    - name: Get namespace aap-rh1
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/scenario-2"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
@@ -15,72 +15,67 @@
         status_code: [200, 404]
       register: r_namespace
 
-    - name: Get AutomationHub CR
+    - name: Get AnsibleAutomationPlatform CR
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/automationhub.ansible.com/v1beta1/namespaces/scenario-2/automationhubs"
+        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_ah_cr
+      register: r_aap_cr
 
-    - name: Get PVCs in scenario-2
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/scenario-2/persistentvolumeclaims?labelSelector=app.kubernetes.io%2Fcomponent%3Dstorage"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-        validate_certs: false
-        status_code: [200, 404]
-      register: r_pvcs
+    - name: Set postgres service name
+      ansible.builtin.set_fact:
+        postgres_service_name: "{{ r_aap_cr.json.items[0].metadata.name }}-aap-postgres-15"
+      when:
+        - r_aap_cr.status == 200
+        - r_aap_cr.json.items | length > 0
 
-    - name: Get pods in scenario-2
+    - name: Get PostgreSQL Service
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/scenario-2/pods"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/services/{{ postgres_service_name | default('') }}"
         method: GET
         headers:
           Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_pods
+      register: r_postgres_svc
+      when: postgres_service_name is defined
+
+    - name: Get Gateway pods
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Daap-gateway"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+        validate_certs: false
+        status_code: [200, 404]
+      register: r_gateway_pods
 
     - name: Evaluate checks
       ansible.builtin.set_fact:
         namespace_exists: "{{ r_namespace.status == 200 }}"
-        storage_class_set: >-
+        postgres_svc_exists: "{{ r_postgres_svc.status | default(404) == 200 }}"
+        gateway_pods_running: >-
           {{
-            r_ah_cr.status == 200 and
-            r_ah_cr.json.items | length > 0 and
-            r_ah_cr.json.items[0].spec.file_storage_storage_class is defined and
-            r_ah_cr.json.items[0].spec.file_storage_storage_class | length > 0
-          }}
-        pvc_bound: >-
-          {{
-            r_pvcs.status == 200 and
-            r_pvcs.json.items | selectattr('status.phase', 'equalto', 'Bound') | list | length > 0
-          }}
-        hub_pods_running: >-
-          {{
-            r_pods.status == 200 and
-            r_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length
+            r_gateway_pods.status == 200 and
+            r_gateway_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
           }}
 
     - name: Set validation output
       ansible.builtin.set_fact:
         validation_output: |
-          Module 2: Automation Hub Storage
-          =================================
-          {{ '[OK]' if namespace_exists else '[X] ' }} Namespace scenario-2 exists
-          {{ '[OK]' if storage_class_set else '[X] ' }} AutomationHub CR has file_storage_storage_class set
-          {{ '[OK]' if pvc_bound else '[X] ' }} Hub file storage PVC is Bound
-          {{ '[OK]' if (hub_pods_running | int) > 0 else '[X] ' }} Hub pods Running ({{ hub_pods_running | default(0) }} pods)
+          Module 3: Gateway Issues
+          ========================
+          {{ '[OK]' if namespace_exists else '[X] ' }} Namespace aap-rh1 exists
+          {{ '[OK]' if postgres_svc_exists else '[X] ' }} PostgreSQL Service {{ postgres_service_name | default('') }} exists
+          {{ '[OK]' if gateway_pods_running else '[X] ' }} Gateway pod Running
         validation_passed: >-
           {{
             namespace_exists and
-            storage_class_set and
-            pvc_bound and
-            (hub_pods_running | int) > 0
+            postgres_svc_exists and
+            gateway_pods_running
           }}
 
     - name: Write failure details

@@ -43,7 +43,7 @@ jobs:
 
       - name: Syntax check — all module/stage combinations
         run: |
-          for module in module-02 module-03 module-04 module-05 module-06 module-07; do
+          for module in module-01 module-02 module-03 module-04 module-05 module-06; do
             for stage in validation solve; do
               echo "=== syntax check: $module/$stage ==="
               ansible-playbook --syntax-check runtime-automation/main.yml \
