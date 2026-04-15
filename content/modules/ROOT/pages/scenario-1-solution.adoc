@@ -24,7 +24,7 @@ In the *OpenShift Console*:
 
 . Navigate to *Ecosystem → Installed Operators* and select your namespace from the dropdown.
 . Click on *Ansible Automation Platform* in the operator list.
-. Click the *AnsibleAutomationPlatform* tab to see your CR instances.
+. Click the *Ansible Automation Platform* tab to see your CR instances.
 . Click on your AAP instance (named `{user}-aap`).
 . Switch to the *YAML* tab and update the `file_storage_storage_class` field in the Hub section:
 
@@ -36,24 +36,30 @@ spec:
     file_storage_storage_class: ocs-external-storagecluster-cephfs
 ----
 
-==== 2. Delete the old PVC
+==== 2. Delete the Automation Hub CR
+
+The current Hub deployment is holding on to old information and needs to be deleted so the Operator can redeploy it cleanly.
+
+In the *OpenShift Console*:
+
+. Navigate to *Ecosystem → Installed Operators* and select your namespace from the dropdown.
+. Click on *Ansible Automation Platform* in the operator list.
+. Click the *Automation Hub* tab to see your CR instances.
+. click the three-dot menu on the right, and select *Delete AutomationHub*.
+
+==== 3. Delete the old PVC
 
 The existing PVC created with the incorrect StorageClass must be deleted so the Operator can provision a new one with the correct StorageClass.
 
 In the *OpenShift Console*, navigate to *Storage → PersistentVolumeClaims* and select your namespace from the dropdown. Find the Hub file storage PVC, click the three-dot menu on the right, and select *Delete PersistentVolumeClaim*.
 
-==== 3. Delete the hub-api deployment
-
-The current hub-api deployment is holding on to old information and needs to be deleted so the Operator can redeploy it cleanly.
-
-In the *OpenShift Console*, navigate to *Workloads → Deployments* and select your namespace. Find the `hub-api` deployment, click the three-dot menu on the right, and select *Delete Deployment*.
 
 ==== 4. Force reconciliation
 
-Manually delete the Hub Operator manager pod to trigger the Operator to recognize the change and provision the new PVC correctly.
+Manually delete the Gateway and Hub Operator manager pods to trigger the Operator to recognize the change and provision the new PVC correctly.
 
-In the *OpenShift Console*, navigate to *Workloads → Pods* and select your namespace. Find the Hub Operator manager pod (named `automation-hub-operator-controller-manager-...`), click the three-dot menu on the right, and select *Delete Pod*.
+In the *OpenShift Console*, navigate to *Workloads → Pods* and select your namespace. Find the Gateway and Hub Operator manager pods (named `aap-gateway-operator-controller-manager-...` and `automation-hub-operator-controller-manager-...`), click the three-dot menu on the right, and select *Delete Pod*.
 
 ==== 5. Verification
 
-Monitor *Workloads → Pods*. The Operator will provision a new PVC, redeploy the `hub-api` Deployment, and the Hub pods will successfully mount the volume and transition to a `Running` and `Ready` state.
+Monitor *Workloads → Pods*. The Operator will provision a new hub deployment, create a new PVC and redeploy Automation Hub. The Hub pods will successfully mount the volume and transition to a `Running` and `Ready` state.

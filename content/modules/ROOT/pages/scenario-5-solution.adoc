@@ -20,7 +20,7 @@ In the *OpenShift Console*:
 
 . Navigate to *Ecosystem → Installed Operators* and select your namespace.
 . Click on *Ansible Automation Platform* in the operator list.
-. Click the *AnsibleAutomationPlatform* tab and click on your AAP instance.
+. Click the *Ansible Automation Platform* tab and click on your AAP instance.
 . Switch to the *YAML* tab and modify the `spec.hub.content.resource_requirements` section:
 
 [source,yaml]

@@ -10,8 +10,8 @@
 
 * Log in to the *AAP Gateway UI*.
 * Observe connectivity failures.
-* Diagnose 2 separate issues.
-* Resolve both issues to restore full functionality.
+* Diagnose 1 issue.
+* Resolve the issue to restore full functionality.
 
 == Troubleshooting
 
@@ -31,20 +31,16 @@ Identify any failing pods and click through to review their *Logs* and *Events* 
 
 Navigate to *Networking → Services* and check for any missing or misconfigured services.
 
-=== Step 4: Fix the first issue
+=== Step 4: Fix the issue
 
-Once you have identified the first issue, apply the fix.
+Once you have identified the issue, apply the fix.
 
 Refer to the solution page if needed: xref:scenario-2-solution.adoc[Solution: Gateway & Controller issues]
 
-=== Step 5: Fix the second issue
-
-Log back into AAP after resolving the first issue. Review pod logs again to identify the second issue and resolve it.
-
-=== Step 6: Verify
+=== Step 5: Verify
 
 Confirm all pods are running and ready, and that you can successfully log into the AAP UI.
 
 == Hint
 
-There are 2 independent issues. Focus on discovering *what* is wrong rather than knowing the fix upfront; check pod logs and service configurations. Once you have identified an issue, check the solution page to apply the fix, then move on to the second issue.
+There is 1 issue. Focus on discovering *what* is wrong rather than knowing the fix upfront; check pod logs and service configurations. Once you have identified an issue, check the solution page to apply the fix.
