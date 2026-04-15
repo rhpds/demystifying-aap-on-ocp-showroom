@@ -1,82 +1,110 @@
 ---
-- name: Solve Module 5 — Automation Hub Sync Issues
+- name: Solve Module 04 — Execution Environment Credentials
   hosts: localhost
   connection: local
   gather_facts: false
 
+  vars:
+    _token: "{{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+
   tasks:
-    - name: Get AnsibleAutomationPlatform CR
+    - name: Read namespace from service account
+      ansible.builtin.slurp:
+        src: /var/run/secrets/kubernetes.io/serviceaccount/namespace
+      register: r_ns
+
+    - name: Set namespace and CR name facts
+      ansible.builtin.set_fact:
+        current_namespace: "{{ r_ns.content | b64decode | trim }}"
+        aap_cr_name: "{{ r_ns.content | b64decode | trim | regex_replace('-scenario-[0-9]+$', '') }}-aap"
+
+    - name: Get admin password from secret
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/secrets/{{ aap_cr_name }}-admin-password"
         method: GET
         headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+          Authorization: "Bearer {{ _token }}"
         validate_certs: false
+        status_code: [200]
+      register: r_admin_secret
+
+    - name: Decode admin password
+      ansible.builtin.set_fact:
+        admin_password: "{{ r_admin_secret.json.data.password | b64decode }}"
+
+    - name: Get AAP CR to find gateway URL
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/{{ current_namespace }}/ansibleautomationplatforms/{{ aap_cr_name }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200]
       register: r_aap_cr
 
-    - name: Set CR name
+    - name: Set gateway URL
       ansible.builtin.set_fact:
-        aap_cr_name: "{{ r_aap_cr.json.items[0].metadata.name }}"
-      when: r_aap_cr.json.items | length > 0
+        gateway_url: "{{ r_aap_cr.json.status.URL }}"
 
-    - name: Patch AAP CR to increase Hub memory to 8Gi
+    - name: Get default execution environment from Controller
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms/{{ aap_cr_name }}"
-        method: PATCH
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-          Content-Type: "application/merge-patch+json"
-        body_format: json
-        body:
-          spec:
-            hub:
-              resource_requirements:
-                limits:
-                  memory: "8Gi"
-                requests:
-                  memory: "4Gi"
-        validate_certs: false
-        status_code: [200, 201]
-      when: aap_cr_name is defined
-
-    - name: Get Hub content PVC
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/persistentvolumeclaims?labelSelector=app.kubernetes.io%2Fcomponent%3Dcontent"
+        url: "{{ gateway_url }}/api/controller/v2/execution_environments/?name=Default+execution+environment"
         method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+        url_username: admin
+        url_password: "{{ admin_password }}"
+        force_basic_auth: true
         validate_certs: false
-      register: r_hub_pvc
+        status_code: [200]
+      register: r_default_ee
 
-    - name: Expand Hub content PVC to 10Gi
+    - name: Set default EE ID
+      ansible.builtin.set_fact:
+        default_ee_id: "{{ r_default_ee.json.results[0].id }}"
+      when: r_default_ee.json.results | length > 0
+
+    - name: Get all job templates
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/persistentvolumeclaims/{{ item.metadata.name }}"
+        url: "{{ gateway_url }}/api/controller/v2/job_templates/"
+        method: GET
+        url_username: admin
+        url_password: "{{ admin_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        status_code: [200]
+      register: r_job_templates
+
+    - name: Reassign job templates using RH1-EE1 to default EE
+      ansible.builtin.uri:
+        url: "{{ gateway_url }}/api/controller/v2/job_templates/{{ item.id }}/"
         method: PATCH
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-          Content-Type: "application/merge-patch+json"
+        url_username: admin
+        url_password: "{{ admin_password }}"
+        force_basic_auth: true
+        validate_certs: false
         body_format: json
         body:
-          spec:
-            resources:
-              requests:
-                storage: "10Gi"
-        validate_certs: false
-        status_code: [200, 201]
-      loop: "{{ r_hub_pvc.json.items }}"
-      when: r_hub_pvc.json.items | length > 0
+          execution_environment: "{{ default_ee_id }}"
+        status_code: [200]
+      loop: >-
+        {{
+          r_job_templates.json.results
+          | selectattr('execution_environment', 'defined')
+          | selectattr('execution_environment.name', 'defined')
+          | selectattr('execution_environment.name', 'equalto', 'RH1-EE1')
+          | list
+        }}
+      when: default_ee_id is defined
 
     - name: Show completion message
       ansible.builtin.copy:
         content: |
           [INFO]
-          [OK] Module 5 solved
+          [OK] Module 04 solved
 
           Fixed:
-          - Increased Hub memory to 8Gi limit / 4Gi request
-          - Expanded Hub content PVC to 10Gi
+          - Reassigned all job templates using RH1-EE1 to Default execution environment
 
-          Pods will restart with new limits. Click Next to validate.
+          Click Validate to confirm.
         dest: "{{ job_info_dir }}/validation_failure.out"
         mode: '0644'
       delegate_to: localhost

@@ -1,78 +1,121 @@
 ---
-- name: Solve Module 7 — Lightspeed Issues
+- name: Solve Module 06 — ALIA Lightspeed Configuration
   hosts: localhost
   connection: local
   gather_facts: false
 
+  vars:
+    _token: "{{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    correct_model: granite-3-2-8b-instruct
+    correct_url: https://litellm-prod.apps.maas.redhatworkshops.io/v1
+
   tasks:
-    - name: Get chatbot configuration secret
+    - name: Read namespace from service account
+      ansible.builtin.slurp:
+        src: /var/run/secrets/kubernetes.io/serviceaccount/namespace
+      register: r_ns
+
+    - name: Set namespace, CR name, and username facts
+      ansible.builtin.set_fact:
+        current_namespace: "{{ r_ns.content | b64decode | trim }}"
+        aap_cr_name: "{{ r_ns.content | b64decode | trim | regex_replace('-scenario-[0-9]+$', '') }}-aap"
+        username: "{{ r_ns.content | b64decode | trim | regex_replace('-scenario-[0-9]+$', '') }}"
+
+    - name: Try to read correct alia token from ArgoCD Application
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/secrets/chatbot-configuration-secret"
+        url: "https://kubernetes.default.svc/apis/argoproj.io/v1alpha1/namespaces/openshift-gitops/applications/aap-instance-{{ username }}"
         method: GET
         headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+          Authorization: "Bearer {{ _token }}"
         validate_certs: false
-        status_code: [200, 404]
-      register: r_chatbot_secret
+        status_code: [200, 403, 404]
+      register: r_argo_app
+      failed_when: false
 
-    - name: Decode current model name
+    - name: Extract alia token from ArgoCD Application helm values
       ansible.builtin.set_fact:
-        current_model: "{{ r_chatbot_secret.json.data.model_name | b64decode }}"
+        correct_token: >-
+          {{
+            r_argo_app.json.spec.source.helm.values
+            | regex_search("token:\\s*'([^']+)'", '\1')
+            | first
+          }}
       when:
-        - r_chatbot_secret.status == 200
-        - r_chatbot_secret.json.data.model_name is defined
+        - r_argo_app.status == 200
+        - r_argo_app.json.spec.source.helm.values is defined
+      failed_when: false
 
-    - name: Patch chatbot secret with correct model name
+    - name: Patch chatbot secret with model + url (token unknown)
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/secrets/chatbot-configuration-secret"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/secrets/chatbot-configuration-secret"
         method: PATCH
         headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+          Authorization: "Bearer {{ _token }}"
           Content-Type: "application/strategic-merge-patch+json"
         body_format: json
         body:
-          data:
-            model_name: "{{ 'granite-3-2-8b-instruct' | b64encode }}"
+          stringData:
+            chatbot_model: "{{ correct_model }}"
+            chatbot_url: "{{ correct_url }}"
         validate_certs: false
         status_code: [200, 201]
-      when:
-        - r_chatbot_secret.status == 200
-        - current_model | default('') != 'granite-3-2-8b-instruct'
+      when: correct_token is not defined
 
-    - name: Get Lightspeed operator manager pods
+    - name: Patch chatbot secret with all correct values
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Dansible-lightspeed-operator"
-        method: GET
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/secrets/chatbot-configuration-secret"
+        method: PATCH
         headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+          Authorization: "Bearer {{ _token }}"
+          Content-Type: "application/strategic-merge-patch+json"
+        body_format: json
+        body:
+          stringData:
+            chatbot_model: "{{ correct_model }}"
+            chatbot_url: "{{ correct_url }}"
+            chatbot_token: "{{ correct_token }}"
         validate_certs: false
-      register: r_lightspeed_mgr_pods
+        status_code: [200, 201]
+      when: correct_token is defined
 
-    - name: Delete Lightspeed operator pod to force reconciliation
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods/{{ item.metadata.name }}"
-        method: DELETE
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-        validate_certs: false
-        status_code: [200, 202, 404]
-      loop: "{{ r_lightspeed_mgr_pods.json.items | default([]) }}"
-      when:
-        - r_lightspeed_mgr_pods.json.items | default([]) | length > 0
-        - current_model | default('') != 'granite-3-2-8b-instruct'
-
-    - name: Show completion message
+    - name: Show completion message (token not retrieved)
       ansible.builtin.copy:
         content: |
           [INFO]
-          [OK] Module 7 solved
+          [OK] Module 06 solve attempted
 
           Fixed:
-          - Updated chatbot-configuration-secret model_name to granite-3-2-8b-instruct
-          - Restarted Lightspeed operator to reconcile
+          - chatbot_model restored to granite-3-2-8b-instruct
+          - chatbot_url restored to correct litellm endpoint
+          - chatbot_token: could not retrieve automatically
 
-          Lightspeed API pod should restart with correct model. Click Next to validate.
+          Ask your instructor for the correct litellm_master_key to restore
+          the token, or re-provision the lab environment.
+
+          Click Validate to check model/url status.
         dest: "{{ job_info_dir }}/validation_failure.out"
         mode: '0644'
       delegate_to: localhost
-      when: job_info_dir is defined
+      when:
+        - job_info_dir is defined
+        - correct_token is not defined
+
+    - name: Show completion message (all values restored)
+      ansible.builtin.copy:
+        content: |
+          [INFO]
+          [OK] Module 06 solved
+
+          Fixed:
+          - chatbot_model restored to granite-3-2-8b-instruct
+          - chatbot_url restored to correct litellm endpoint
+          - chatbot_token restored from deployment configuration
+
+          The ALIA icon should appear after the Lightspeed component reconciles.
+          Click Validate to confirm.
+        dest: "{{ job_info_dir }}/validation_failure.out"
+        mode: '0644'
+      delegate_to: localhost
+      when:
+        - job_info_dir is defined
+        - correct_token is defined

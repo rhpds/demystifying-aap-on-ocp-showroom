@@ -1,98 +1,118 @@
 ---
-- name: Validate Module 5 — Automation Hub Sync Issues
+- name: Validate Module 04 — Execution Environment Credentials
   hosts: localhost
   connection: local
   gather_facts: false
 
+  vars:
+    _token: "{{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+
   tasks:
-    - name: Get namespace aap-rh1
+    - name: Read namespace from service account
+      ansible.builtin.slurp:
+        src: /var/run/secrets/kubernetes.io/serviceaccount/namespace
+      register: r_ns
+
+    - name: Set namespace and CR name facts
+      ansible.builtin.set_fact:
+        current_namespace: "{{ r_ns.content | b64decode | trim }}"
+        aap_cr_name: "{{ r_ns.content | b64decode | trim | regex_replace('-scenario-[0-9]+$', '') }}-aap"
+
+    - name: List all pods in namespace
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods"
         method: GET
         headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+          Authorization: "Bearer {{ _token }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_namespace
+      register: r_pods
 
-    - name: Get AnsibleAutomationPlatform CR
+    - name: Get AAP CR to find gateway URL
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/aap-rh1/ansibleautomationplatforms"
+        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/{{ current_namespace }}/ansibleautomationplatforms/{{ aap_cr_name }}"
         method: GET
         headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+          Authorization: "Bearer {{ _token }}"
         validate_certs: false
         status_code: [200, 404]
       register: r_aap_cr
 
-    - name: Check Hub memory limits
-      ansible.builtin.set_fact:
-        hub_memory_limit: >-
-          {{
-            r_aap_cr.json.items[0].spec.hub.resource_requirements.limits.memory | default('0Gi')
-            if r_aap_cr.json.items | length > 0
-            else '0Gi'
-          }}
-
-    - name: Get Hub content PVC
+    - name: Get admin password from secret
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/persistentvolumeclaims?labelSelector=app.kubernetes.io%2Fcomponent%3Dcontent"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/secrets/{{ aap_cr_name }}-admin-password"
         method: GET
         headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+          Authorization: "Bearer {{ _token }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_hub_pvc
+      register: r_admin_secret
 
-    - name: Check PVC size
+    - name: Set gateway URL and admin password
       ansible.builtin.set_fact:
-        pvc_size: >-
-          {{
-            r_hub_pvc.json.items[0].spec.resources.requests.storage | default('0Gi')
-            if r_hub_pvc.json.items | length > 0
-            else '0Gi'
-          }}
+        gateway_url: "{{ r_aap_cr.json.status.URL | default('') }}"
+        admin_password: "{{ r_admin_secret.json.data.password | b64decode }}"
+      when:
+        - r_aap_cr.status == 200
+        - r_aap_cr.json.status is defined
+        - r_admin_secret.status == 200
 
-    - name: Get Hub pods
+    - name: Get job templates from AAP Controller API
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/aap-rh1/pods?labelSelector=app.kubernetes.io%2Fname%3Daap-hub"
+        url: "{{ gateway_url }}/api/controller/v2/job_templates/"
         method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+        url_username: admin
+        url_password: "{{ admin_password | default('') }}"
+        force_basic_auth: true
         validate_certs: false
-        status_code: [200, 404]
-      register: r_hub_pods
+        status_code: [200, 401, 404]
+      register: r_job_templates
+      when:
+        - gateway_url is defined
+        - gateway_url | length > 0
+        - admin_password is defined
+
+    - name: Count job templates still using RH1-EE1
+      ansible.builtin.set_fact:
+        bad_ee_count: >-
+          {{
+            r_job_templates.json.results | default([])
+            | selectattr('execution_environment', 'defined')
+            | selectattr('execution_environment.name', 'defined')
+            | selectattr('execution_environment.name', 'equalto', 'RH1-EE1')
+            | list | length
+          }}
+      when:
+        - r_job_templates is defined
+        - r_job_templates.status | default(0) == 200
+
+    - name: Count pods in ImagePullBackOff
+      ansible.builtin.set_fact:
+        imagepullbackoff_count: >-
+          {{
+            r_pods.json.items | default([])
+            | selectattr('status.containerStatuses', 'defined')
+            | map(attribute='status.containerStatuses')
+            | flatten
+            | selectattr('state.waiting.reason', 'defined')
+            | selectattr('state.waiting.reason', 'equalto', 'ImagePullBackOff')
+            | list | length
+          }}
+      when: r_pods.status | default(0) == 200
 
     - name: Evaluate checks
       ansible.builtin.set_fact:
-        namespace_exists: "{{ r_namespace.status == 200 }}"
-        memory_increased: "{{ hub_memory_limit is version('8Gi', '>=') }}"
-        pvc_expanded: "{{ pvc_size is version('10Gi', '>=') }}"
-        no_oom_pods: >-
-          {{
-            r_hub_pods.status == 200 and
-            (r_hub_pods.json.items | selectattr('status.containerStatuses', 'defined') |
-            map(attribute='status.containerStatuses') | flatten |
-            selectattr('lastState.terminated.reason', 'defined') |
-            selectattr('lastState.terminated.reason', 'equalto', 'OOMKilled') | list | length) == 0
-          }}
+        no_imagepullbackoff: "{{ (imagepullbackoff_count | default(0) | int) == 0 }}"
+        no_bad_ee_templates: "{{ (bad_ee_count | default(0) | int) == 0 }}"
 
     - name: Set validation output
       ansible.builtin.set_fact:
         validation_output: |
-          Module 5: Automation Hub Sync Issues
-          ======================================
-          {{ '[OK]' if namespace_exists else '[X] ' }} Namespace aap-rh1 exists
-          {{ '[OK]' if memory_increased else '[X] ' }} Hub memory limit ≥ 8Gi (current: {{ hub_memory_limit }})
-          {{ '[OK]' if pvc_expanded else '[X] ' }} Hub content PVC ≥ 10Gi (current: {{ pvc_size }})
-          {{ '[OK]' if no_oom_pods else '[X] ' }} No OOMKilled Hub pods
-        validation_passed: >-
-          {{
-            namespace_exists and
-            memory_increased and
-            pvc_expanded and
-            no_oom_pods
-          }}
+          Module 04: Execution Environment Credentials
+          =============================================
+          {{ '[OK]' if no_imagepullbackoff else '[X] ' }} No pods in ImagePullBackOff ({{ imagepullbackoff_count | default(0) }} found)
+          {{ '[OK]' if no_bad_ee_templates else '[X] ' }} No job templates using RH1-EE1 ({{ bad_ee_count | default(0) }} found)
+        validation_passed: "{{ no_imagepullbackoff and no_bad_ee_templates }}"
 
     - name: Write failure details
       ansible.builtin.copy:

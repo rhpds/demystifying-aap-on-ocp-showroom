@@ -1,87 +1,82 @@
 ---
-- name: Validate Module 2 — Automation Hub Storage
+- name: Validate Module 01 — Automation Hub Storage
   hosts: localhost
   connection: local
   gather_facts: false
 
+  vars:
+    _token: "{{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+
   tasks:
-    - name: Get namespace scenario-2
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/scenario-2"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-        validate_certs: false
-        status_code: [200, 404]
-      register: r_namespace
+    - name: Read namespace from service account
+      ansible.builtin.slurp:
+        src: /var/run/secrets/kubernetes.io/serviceaccount/namespace
+      register: r_ns
 
-    - name: Get AutomationHub CR
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/automationhub.ansible.com/v1beta1/namespaces/scenario-2/automationhubs"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-        validate_certs: false
-        status_code: [200, 404]
-      register: r_ah_cr
+    - name: Set namespace and CR name facts
+      ansible.builtin.set_fact:
+        current_namespace: "{{ r_ns.content | b64decode | trim }}"
+        aap_cr_name: "{{ r_ns.content | b64decode | trim | regex_replace('-scenario-[0-9]+$', '') }}-aap"
 
-    - name: Get PVCs in scenario-2
+    - name: Get AAP CR
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/scenario-2/persistentvolumeclaims?labelSelector=app.kubernetes.io%2Fcomponent%3Dstorage"
+        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/{{ current_namespace }}/ansibleautomationplatforms/{{ aap_cr_name }}"
         method: GET
         headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+          Authorization: "Bearer {{ _token }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_pvcs
+      register: r_aap_cr
 
-    - name: Get pods in scenario-2
+    - name: Get Hub file storage PVC
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/scenario-2/pods"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/persistentvolumeclaims/{{ aap_cr_name }}-hub-file-storage"
         method: GET
         headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+          Authorization: "Bearer {{ _token }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_pods
+      register: r_pvc
+
+    - name: Get Hub content pods
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods?labelSelector=app.kubernetes.io%2Fname%3Dautomation-hub"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200, 404]
+      register: r_hub_pods
 
     - name: Evaluate checks
       ansible.builtin.set_fact:
-        namespace_exists: "{{ r_namespace.status == 200 }}"
         storage_class_set: >-
           {{
-            r_ah_cr.status == 200 and
-            r_ah_cr.json.items | length > 0 and
-            r_ah_cr.json.items[0].spec.file_storage_storage_class is defined and
-            r_ah_cr.json.items[0].spec.file_storage_storage_class | length > 0
+            r_aap_cr.status == 200 and
+            r_aap_cr.json.spec.hub is defined and
+            r_aap_cr.json.spec.hub.file_storage_storage_class is defined and
+            r_aap_cr.json.spec.hub.file_storage_storage_class | length > 0
           }}
         pvc_bound: >-
           {{
-            r_pvcs.status == 200 and
-            r_pvcs.json.items | selectattr('status.phase', 'equalto', 'Bound') | list | length > 0
+            r_pvc.status == 200 and
+            r_pvc.json.status.phase == 'Bound'
           }}
         hub_pods_running: >-
           {{
-            r_pods.status == 200 and
-            r_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length
+            r_hub_pods.status == 200 and
+            r_hub_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
           }}
 
     - name: Set validation output
       ansible.builtin.set_fact:
         validation_output: |
-          Module 2: Automation Hub Storage
-          =================================
-          {{ '[OK]' if namespace_exists else '[X] ' }} Namespace scenario-2 exists
-          {{ '[OK]' if storage_class_set else '[X] ' }} AutomationHub CR has file_storage_storage_class set
-          {{ '[OK]' if pvc_bound else '[X] ' }} Hub file storage PVC is Bound
-          {{ '[OK]' if (hub_pods_running | int) > 0 else '[X] ' }} Hub pods Running ({{ hub_pods_running | default(0) }} pods)
-        validation_passed: >-
-          {{
-            namespace_exists and
-            storage_class_set and
-            pvc_bound and
-            (hub_pods_running | int) > 0
-          }}
+          Module 01: Automation Hub Storage
+          ==================================
+          {{ '[OK]' if storage_class_set else '[X] ' }} Hub file_storage_storage_class is set
+          {{ '[OK]' if pvc_bound else '[X] ' }} Hub PVC {{ aap_cr_name }}-hub-file-storage is Bound
+          {{ '[OK]' if hub_pods_running else '[X] ' }} Hub pods Running
+        validation_passed: "{{ storage_class_set and pvc_bound and hub_pods_running }}"
 
     - name: Write failure details
       ansible.builtin.copy:
