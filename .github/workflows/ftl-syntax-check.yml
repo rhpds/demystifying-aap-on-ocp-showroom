@@ -38,12 +38,12 @@ jobs:
       - name: ansible-lint — all playbooks
         run: |
           ansible-lint runtime-automation/main.yml \
-            runtime-automation/module-*/validation.yml \
-            runtime-automation/module-*/solve.yml
+            runtime-automation/scenario-*/validation.yml \
+            runtime-automation/scenario-*/solve.yml
 
-      - name: Syntax check — all module/stage combinations
+      - name: Syntax check — all scenario/stage combinations
         run: |
-          for module in module-01 module-02 module-03 module-04 module-05 module-06; do
+          for module in scenario-1 scenario-2 scenario-3 scenario-4 scenario-5 scenario-6; do
             for stage in validation solve; do
               echo "=== syntax check: $module/$stage ==="
               ansible-playbook --syntax-check runtime-automation/main.yml \
@@ -55,7 +55,7 @@ jobs:
       - name: Verify all stubs are executable
         run: |
           FAILED=0
-          for stub in runtime-automation/module-*/*-control.sh; do
+          for stub in runtime-automation/scenario-*/*-control.sh; do
             if [ ! -x "$stub" ]; then
               echo "ERROR: $stub is not executable"
               FAILED=1

@@ -24,43 +24,43 @@ antora:
   name: modules
   dir: www
   modules:
-    - name: module-01
-      label: "Scenario 1: Automation Hub storage issue"
+    - name: scenario-1
+      label: "Scenario 1: Hub PVC issue"
       solveButton: true
       scripts:
         - solve
         - validation
 
-    - name: module-02
-      label: "Scenario 2: Gateway & Controller issues"
+    - name: scenario-2
+      label: "Scenario 2: Wrong admin password / Database service missing"
       solveButton: true
       scripts:
         - solve
         - validation
 
-    - name: module-03
-      label: "Scenario 3: Node selector & resource issues"
+    - name: scenario-3
+      label: "Scenario 3: Wrong node selector / High resource requests"
       solveButton: true
       scripts:
         - solve
         - validation
 
-    - name: module-04
-      label: "Scenario 4: Execution Environment credentials"
+    - name: scenario-4
+      label: "Scenario 4: Job template with EE using wrong credentials"
       solveButton: true
       scripts:
         - solve
         - validation
 
-    - name: module-05
-      label: "Scenario 5: Automation Hub sync issues"
+    - name: scenario-5
+      label: "Scenario 5: Hub community sync limits / Hub sync storage issue"
       solveButton: true
       scripts:
         - solve
         - validation
 
-    - name: module-06
-      label: "Scenario 6: ALIA — Ansible Lightspeed issues"
+    - name: scenario-6
+      label: "Scenario 6: ALIA troubleshooting wrong model"
       solveButton: true
       scripts:
         - solve

@@ -1,0 +1,50 @@
+---
+- name: Solve Scenario 06 — ALIA Lightspeed Configuration
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    _token: "{{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    correct_model: granite-3-2-8b-instruct
+
+  tasks:
+    - name: Read namespace from service account
+      ansible.builtin.slurp:
+        src: /var/run/secrets/kubernetes.io/serviceaccount/namespace
+      register: r_ns
+
+    - name: Set namespace and CR name facts
+      ansible.builtin.set_fact:
+        current_namespace: "{{ r_ns.content | b64decode | trim }}"
+        aap_cr_name: "{{ r_ns.content | b64decode | trim | regex_replace('-scenario-[0-9]+$', '') }}-aap"
+
+    - name: Patch chatbot secret to restore correct model name
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/secrets/chatbot-configuration-secret"
+        method: PATCH
+        headers:
+          Authorization: "Bearer {{ _token }}"
+          Content-Type: "application/strategic-merge-patch+json"
+        body_format: json
+        body:
+          stringData:
+            chatbot_model: "{{ correct_model }}"
+        validate_certs: false
+        status_code: [200, 201]
+
+    - name: Show completion message
+      ansible.builtin.copy:
+        content: |
+          [INFO]
+          [OK] Scenario 06 solved
+
+          Fixed:
+          - chatbot_model restored to granite-3-2-8b-instruct
+
+          The ALIA icon should reappear after the Lightspeed component reconciles.
+          Click Validate to confirm.
+        dest: "{{ job_info_dir }}/validation_failure.out"
+        mode: '0644'
+      delegate_to: localhost
+      when: job_info_dir is defined
