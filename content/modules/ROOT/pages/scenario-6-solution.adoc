@@ -8,29 +8,33 @@ This page provides the detailed solution for the issue presented in Scenario 6, 
 
 === Diagnosis
 
-The *Ansible Lightspeed Intelligent Assistant (ALIA)* service was unable to initialize because it was configured to use a model that it was not authorized to access (`codellama-7b-instruct`). This prevents the ALIA UI component from being activated.
+The *Ansible Lightspeed Intelligent Assistant (ALIA)* service was unable to initialize because the `chatbot-configuration-secret` contained two misconfigurations:
+
+* The model was set to one not available in this environment (`codellama-7b-instruct` instead of `{alia_model}`)
+* The API token was invalid (`sk-invalid-token-for-troubleshooting` instead of the correct LiteMaaS key)
 
 The pod logs for the `lightspeed-api` and `chatbot` pods confirm the model connection or authentication failure.
 
 === 🛠️ Resolution: Updating the chatbot secret
 
-The configuration for the LLM is stored within the `chatbot-configuration-secret`. The fix is to edit this secret and replace the unauthorized model name with the correct one: `{alia_model}`.
+The configuration for the LLM is stored within the `chatbot-configuration-secret`. The fix is to edit this secret and correct both the model name and the API token.
 
 ==== 1. Update the chatbot configuration secret
 
 In the *OpenShift Console*, navigate to *Workloads → Secrets* in your namespace. Find `chatbot-configuration-secret`, open it and click *Edit*.
 
-Update the `chatbot_model` value to the correct model name:
+Update both `chatbot_model` and `chatbot_token` to the correct values:
 
 [source,yaml,subs="+attributes"]
 ----
 data:
   chatbot_model: {alia_model}  # <--- CORRECT VALUE
+  chatbot_token: {alia_token}  # <--- CORRECT VALUE
 ----
 
 [IMPORTANT]
 ====
-Make sure you are editing the `chatbot_model` key specifically. If using the *Key/Value* editor, the console handles base64 encoding automatically. If editing raw YAML, the value must be base64-encoded.
+Make sure you update both keys. If using the *Key/Value* editor, the console handles base64 encoding automatically. If editing raw YAML, the values must be base64-encoded.
 ====
 
 ==== 2. Force reconciliation
