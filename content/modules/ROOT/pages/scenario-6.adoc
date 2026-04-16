@@ -86,3 +86,10 @@ After applying the fix and allowing the Lightspeed pods to reconcile, log back i
 == Hint
 
 The ALIA service requires a valid connection to a Large Language Model. Review the logs for the Lightspeed API and chatbot pods; the error will indicate what model or endpoint is being used and why it is failing. Compare this against the correct configuration values shown above.
+
+== Check Your Work
+
+++++
+<div class="validate-button-placeholder" data-module="scenario-6"></div>
+<div class="solve-button-placeholder" data-module="scenario-6"></div>
+++++

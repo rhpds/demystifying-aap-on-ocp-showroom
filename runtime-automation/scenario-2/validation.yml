@@ -59,30 +59,17 @@
         gateway_pods_running: >-
           {{
             r_gateway_pods.status == 200 and
-            r_gateway_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+            r_gateway_pods.json['items'] | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
           }}
 
-    - name: Set validation output
-      ansible.builtin.set_fact:
-        validation_output: |
-          Module 02: Gateway Connectivity
-          ================================
-          {{ '[OK]' if postgres_svc_exists else '[X] ' }} Service {{ aap_cr_name }}-postgres-15 exists
-          {{ '[OK]' if operator_running else '[X] ' }} Gateway operator deployment has replicas >= 1
-          {{ '[OK]' if gateway_pods_running else '[X] ' }} Gateway pods Running
-        validation_passed: "{{ postgres_svc_exists and operator_running and gateway_pods_running }}"
-
-    - name: Write failure details
-      ansible.builtin.copy:
-        content: "{{ validation_output }}"
-        dest: "{{ job_info_dir }}/validation_failure.out"
-        mode: '0644'
-      delegate_to: localhost
-      when:
-        - job_info_dir is defined
-        - not validation_passed | bool
-
-    - name: Fail if not passed
-      ansible.builtin.fail:
-        msg: "Complete the missing tasks and try again."
-      when: not validation_passed | bool
+    - name: Validate all tasks
+      validation_check:
+        check: "{{ postgres_svc_exists and operator_running and gateway_pods_running }}"
+        pass_msg: |
+          ✅ Service {{ aap_cr_name }}-postgres-15 exists
+          ✅ Gateway operator deployment has replicas >= 1
+          ✅ Gateway pods Running
+        error_msg: |
+          {{ '✅' if postgres_svc_exists else '❌' }} Service {{ aap_cr_name }}-postgres-15 exists
+          {{ '✅' if operator_running else '❌' }} Gateway operator deployment has replicas >= 1
+          {{ '✅' if gateway_pods_running else '❌' }} Gateway pods Running
