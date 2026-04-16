@@ -38,3 +38,10 @@ Confirm all pods are running and ready, then successfully log into the AAP UI.
 == Hint
 
 There are 2 issues. Try to identify both before checking the solution. Use *Describe* on the failing pods in the OpenShift Console; the events section will tell you exactly why the scheduler cannot place them.
+
+== Check Your Work
+
+++++
+<div class="validate-button-placeholder" data-module="scenario-3"></div>
+<div class="solve-button-placeholder" data-module="scenario-3"></div>
+++++

@@ -44,3 +44,10 @@ Monitor the namespace until all Hub pods transition to a `Running` and `Ready` s
 == Hint
 
 The failure is related to how Automation Hub uses storage. Review the pod events to understand what the scheduler is reporting, then look at the storage access mode requirements for Automation Hub.
+
+== Check Your Work
+
+++++
+<div class="validate-button-placeholder" data-module="scenario-1"></div>
+<div class="solve-button-placeholder" data-module="scenario-1"></div>
+++++
