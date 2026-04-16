@@ -1,67 +1,14 @@
-= 💡 Solution: Scenario 2 — Gateway & Controller issues
+= 💡 Solution: Scenario 2 - Gateway & Controller issues
 
 This page provides the detailed solutions for the issues presented in Scenario 2. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 
-== 🛑 Problem 1: Missing database service
+== 🛑 Problem: Incorrect Gateway password
 
 === Diagnosis
 
-The core issue was that the Kubernetes *Service* object for the PostgreSQL database was missing. Without a service, other components cannot resolve or connect to the database pods, causing widespread connectivity failures across the AAP stack.
-
-=== 🛠️ Resolution: Recreating the database service
-
-The fix requires recreating the Kubernetes Service object. Crucially, the service must contain specific metadata to prevent the Operator from immediately deleting it as an "unmanaged" resource.
-
-==== 1. Define and apply the missing service
-
-In the *OpenShift Console*, navigate to *Networking → Services* in your namespace and create a new service. Click *Create Service* and replace the default YAML with the following, substituting `{username}` with your actual username (visible in your AAP URL and resource names):
-
-[source,yaml]
-----
-apiVersion: v1
-kind: Service
-metadata:
-  name: "{username}-aap-postgres-15"
-  namespace: "{username}-scenario-2"
-  labels:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/instance: "postgres-15-{username}-aap"
-    app.kubernetes.io/managed-by: aap-gateway-operator
-    app.kubernetes.io/name: postgres-15
-spec:
-  clusterIP: None
-  ipFamilies:
-    - IPv4
-  ports:
-    - protocol: TCP
-      port: 5432
-      targetPort: 5432
-  internalTrafficPolicy: Cluster
-  clusterIPs:
-    - None
-  type: ClusterIP
-  ipFamilyPolicy: SingleStack
-  sessionAffinity: None
-  selector:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/instance: "postgres-15-{username}-aap"
-    app.kubernetes.io/managed-by: aap-gateway-operator
-    app.kubernetes.io/name: postgres-15
-----
-
-==== 2. Verification
-
-Monitor *Workloads → Pods*. Once the service is recreated, the application components (Controller, Web) will automatically re-establish connections to the database, and all pods should return to a `Running` and `Ready` state.
-
----
-
-== 🛑 Problem 2: Incorrect Gateway password
-
-=== Diagnosis
-
-The second issue was an incorrect password set for the internal *AAP Gateway* administration user (`admin`). This prevents authentication into the AAP UI.
+This issue was an incorrect password set for the internal *AAP Gateway* administration user (`admin`). This prevents authentication into the AAP UI.
 
 === 🛠️ Resolution: Resetting the Gateway password
 
@@ -69,9 +16,9 @@ The solution is to use the dedicated `aap-gateway-manage` utility provided withi
 
 ==== 1. Execute the management command
 
-In the *OpenShift Console*, navigate to *Workloads → Pods*, find the `{username}-aap-gateway` pod and open its *Terminal* tab.
+In the *OpenShift Console*, navigate to *Workloads → Pods*, find the `{user}-aap-gateway` pod and open its *Terminal* tab.
 
-First, retrieve the correct password: navigate to *Workloads → Secrets*, find the `{username}-aap-admin-password` secret, click on it, and note the value of the `password` key.
+First, retrieve the correct password: navigate to *Workloads → Secrets*, find the `{user}-aap-admin-password` secret, click on it, and note the value of the `password` key.
 
 Then run the following command in the pod terminal:
 

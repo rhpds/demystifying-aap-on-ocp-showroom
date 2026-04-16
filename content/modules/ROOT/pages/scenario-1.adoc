@@ -17,6 +17,30 @@
 *Scenario 1 is different from the others.* The environment is already broken at deployment. There is no *Break Scenario* job template to run. Log into AAP and go straight to troubleshooting.
 ====
 
+[#credentials]
+== Your credentials
+
+Use the following credentials to log into AAP via the tab on the right:
+
+[cols="1,2",options="header"]
+|===
+| Field | Value
+| *Username* | admin
+| *Password* | {password}
+|===
+
+[#ocp-console]
+== OpenShift Console
+
+Use the following credentials to log into OpenShift via the tab on the right:
+
+[cols="1,2",options="header"]
+|===
+| Field | Value
+| *Username* | {user}
+| *Password* | {password}
+|===
+
 == Troubleshooting
 
 === Step 1: Inspect Hub pods
