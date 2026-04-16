@@ -1,4 +1,4 @@
-= 💡 Solution: Scenario 1 — Automation Hub storage issue
+= 💡 Solution: Scenario 1 - Automation Hub storage issue
 
 This page provides the detailed solution for Scenario 1. Review these steps after you have attempted the diagnosis and resolution yourself.
 
