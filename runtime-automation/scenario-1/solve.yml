@@ -33,6 +33,31 @@
         validate_certs: false
         status_code: [200, 201]
 
+    - name: Get Hub Operator manager pods
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods?labelSelector=app.kubernetes.io%2Fname%3Dautomation-hub-operator"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200, 404]
+      register: r_operator_pods
+
+    - name: Delete operator manager pod to force restart before PVC deletion
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods/{{ item.metadata.name }}"
+        method: DELETE
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200, 202, 404]
+      loop: "{{ r_operator_pods.json['items'] | default([]) }}"
+      when: r_operator_pods.status == 200
+
+    - name: Wait for operator to restart and read updated CR
+      ansible.builtin.pause:
+        seconds: 30
+
     - name: Delete existing PVC so operator recreates with CephFS
       ansible.builtin.uri:
         url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/persistentvolumeclaims/{{ aap_cr_name }}-hub-file-storage"
@@ -51,27 +76,6 @@
         validate_certs: false
         status_code: [200, 202, 404]
 
-    - name: Delete Hub Operator manager pod to force reconciliation
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods?labelSelector=app.kubernetes.io%2Fname%3Dautomation-hub-operator"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ _token }}"
-        validate_certs: false
-        status_code: [200, 404]
-      register: r_operator_pods
-
-    - name: Delete each operator manager pod
-      ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods/{{ item.metadata.name }}"
-        method: DELETE
-        headers:
-          Authorization: "Bearer {{ _token }}"
-        validate_certs: false
-        status_code: [200, 202, 404]
-      loop: "{{ r_operator_pods.json['items'] | default([]) }}"
-      when: r_operator_pods.status == 200
-
     - name: Show completion message
       ansible.builtin.copy:
         content: |
@@ -80,9 +84,10 @@
 
           Fixed:
           - Patched Hub file_storage_storage_class to ocs-external-storagecluster-cephfs
+          - Restarted operator so it reads updated CR before PVC is recreated
           - Deleted old PVC so operator recreates it with RWX/CephFS
 
-          Hub pods will restart shortly. Click Validate to check status.
+          Hub pods will restart. Wait 5 minutes then click Validate.
         dest: "{{ job_info_dir }}/validation_failure.out"
         mode: '0644'
       delegate_to: localhost
