@@ -18,6 +18,7 @@ asciidoc:
     guid: "guid"
     # alia_model is hardcoded since it is not injected at deploy time
     alia_model: "granite-3-2-8b-instruct"
-    # ALIA connection details — injected at deploy time from content_vars
+    # ALIA connection details — injected at deploy time from ocp4_workload_showroom_user_data_seed
+    # Dev-mode placeholder values for local Antora builds:
     alia_url: "https://litellm-prod.apps.maas.redhatworkshops.io/v1"
     alia_token: "token-not-set"

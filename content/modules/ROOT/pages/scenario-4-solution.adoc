@@ -1,4 +1,4 @@
-= 💡 Solution: Scenario 4 — Execution Environment credentials
+= 💡 Solution: Scenario 4 - Execution Environment credentials
 
 This page provides the detailed solution for the issue presented in Scenario 4. Review these steps after you have attempted the diagnosis and resolution yourself.
 
