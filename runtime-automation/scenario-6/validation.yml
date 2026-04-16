@@ -56,27 +56,14 @@
             )
           }}
 
-    - name: Set validation output
-      ansible.builtin.set_fact:
-        validation_output: |
-          Module 06: ALIA Lightspeed Configuration
-          =========================================
-          {{ '[OK]' if secret_exists else '[X] ' }} chatbot-configuration-secret exists
-          {{ '[OK]' if correct_model else '[X] ' }} chatbot_model = granite-3-2-8b-instruct (got: {{ chatbot_model | default('not found') }})
-          {{ '[OK]' if lightspeed_enabled else '[X] ' }} Lightspeed is enabled in AAP CR
-        validation_passed: "{{ secret_exists and correct_model and lightspeed_enabled }}"
-
-    - name: Write failure details
-      ansible.builtin.copy:
-        content: "{{ validation_output }}"
-        dest: "{{ job_info_dir }}/validation_failure.out"
-        mode: '0644'
-      delegate_to: localhost
-      when:
-        - job_info_dir is defined
-        - not validation_passed | bool
-
-    - name: Fail if not passed
-      ansible.builtin.fail:
-        msg: "Complete the missing tasks and try again."
-      when: not validation_passed | bool
+    - name: Validate all tasks
+      validation_check:
+        check: "{{ secret_exists and correct_model and lightspeed_enabled }}"
+        pass_msg: |
+          ✅ chatbot-configuration-secret exists
+          ✅ chatbot_model = granite-3-2-8b-instruct
+          ✅ Lightspeed is enabled in AAP CR
+        error_msg: |
+          {{ '✅' if secret_exists else '❌' }} chatbot-configuration-secret exists
+          {{ '✅' if correct_model else '❌' }} chatbot_model = granite-3-2-8b-instruct (got: {{ chatbot_model | default('not found') }})
+          {{ '✅' if lightspeed_enabled else '❌' }} Lightspeed is enabled in AAP CR

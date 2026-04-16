@@ -52,14 +52,16 @@ jobs:
             done
           done
 
-      - name: Verify all stubs are executable
+      - name: Verify each scenario has solve.yml and validation.yml
         run: |
           FAILED=0
-          for stub in runtime-automation/scenario-*/*-control.sh; do
-            if [ ! -x "$stub" ]; then
-              echo "ERROR: $stub is not executable"
-              FAILED=1
-            fi
+          for module in scenario-1 scenario-2 scenario-3 scenario-4 scenario-5 scenario-6; do
+            for stage in solve validation; do
+              if [ ! -f "runtime-automation/$module/$stage.yml" ]; then
+                echo "ERROR: runtime-automation/$module/$stage.yml not found"
+                FAILED=1
+              fi
+            done
           done
           if [ $FAILED -eq 1 ]; then exit 1; fi
-          echo "All stubs are executable"
+          echo "All playbooks present"

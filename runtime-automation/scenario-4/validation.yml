@@ -105,26 +105,12 @@
         no_imagepullbackoff: "{{ (imagepullbackoff_count | default(0) | int) == 0 }}"
         no_bad_ee_templates: "{{ (bad_ee_count | default(0) | int) == 0 }}"
 
-    - name: Set validation output
-      ansible.builtin.set_fact:
-        validation_output: |
-          Module 04: Execution Environment Credentials
-          =============================================
-          {{ '[OK]' if no_imagepullbackoff else '[X] ' }} No pods in ImagePullBackOff ({{ imagepullbackoff_count | default(0) }} found)
-          {{ '[OK]' if no_bad_ee_templates else '[X] ' }} No job templates using RH1-EE1 ({{ bad_ee_count | default(0) }} found)
-        validation_passed: "{{ no_imagepullbackoff and no_bad_ee_templates }}"
-
-    - name: Write failure details
-      ansible.builtin.copy:
-        content: "{{ validation_output }}"
-        dest: "{{ job_info_dir }}/validation_failure.out"
-        mode: '0644'
-      delegate_to: localhost
-      when:
-        - job_info_dir is defined
-        - not validation_passed | bool
-
-    - name: Fail if not passed
-      ansible.builtin.fail:
-        msg: "Complete the missing tasks and try again."
-      when: not validation_passed | bool
+    - name: Validate all tasks
+      validation_check:
+        check: "{{ no_imagepullbackoff and no_bad_ee_templates }}"
+        pass_msg: |
+          ✅ No pods in ImagePullBackOff
+          ✅ No job templates using RH1-EE1
+        error_msg: |
+          {{ '✅' if no_imagepullbackoff else '❌' }} No pods in ImagePullBackOff ({{ imagepullbackoff_count | default(0) }} found)
+          {{ '✅' if no_bad_ee_templates else '❌' }} No job templates using RH1-EE1 ({{ bad_ee_count | default(0) }} found)
