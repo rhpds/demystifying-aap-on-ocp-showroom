@@ -51,9 +51,9 @@ Review the job output to understand the error message.
 
 === Step 3: Inspect the failed job
 
-Click into the failed job run and review its output in detail. The error will indicate what is wrong with the Execution Environment or credentials configuration.
+Click into the failed job run and review its output in detail. The error will indicate a failure.
 
-You can also check the *OpenShift Console → Workloads → Pods* to find the automation job pod and review its logs.
+For greater detail, check the *OpenShift Console → Workloads → Pods* to find the automation job pod and review its logs.
 
 === Step 4: Fix the issue
 
