@@ -70,7 +70,7 @@
         hub_pods_running: >-
           {{
             r_hub_pods.status == 200 and
-            r_hub_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+            r_hub_pods.json['items'] | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
           }}
 
     - name: Validate all tasks

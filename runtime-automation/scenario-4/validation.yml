@@ -90,7 +90,7 @@
       ansible.builtin.set_fact:
         imagepullbackoff_count: >-
           {{
-            r_pods.json.items | default([])
+            r_pods.json['items'] | default([])
             | selectattr('status.containerStatuses', 'defined')
             | map(attribute='status.containerStatuses')
             | flatten
