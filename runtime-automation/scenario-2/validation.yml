@@ -59,7 +59,7 @@
         gateway_pods_running: >-
           {{
             r_gateway_pods.status == 200 and
-            r_gateway_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+            r_gateway_pods.json['items'] | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
           }}
 
     - name: Validate all tasks
