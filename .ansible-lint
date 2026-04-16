@@ -1,6 +1,11 @@
 ---
-# validation_check is a module provided by the FTL runner (rhpds.ftl collection)
-# at runtime. It is not available in the CI lint environment, so we skip the
-# unknown-module rule to avoid false positives.
-skip_list:
-  - syntax-check[unknown-module]
+# validation_check is a module built into the ZT runner image at runtime.
+# It is not installable in CI, so exclude validation.yml files from ansible-lint.
+# yamllint and ansible-playbook --syntax-check still cover these files.
+exclude_paths:
+  - runtime-automation/scenario-1/validation.yml
+  - runtime-automation/scenario-2/validation.yml
+  - runtime-automation/scenario-3/validation.yml
+  - runtime-automation/scenario-4/validation.yml
+  - runtime-automation/scenario-5/validation.yml
+  - runtime-automation/scenario-6/validation.yml
