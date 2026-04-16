@@ -48,6 +48,14 @@
         status_code: [200, 404]
       register: r_hub_pods
 
+    - name: Debug hub pods found
+      ansible.builtin.debug:
+        msg: >-
+          Hub pods query status={{ r_hub_pods.status }},
+          count={{ r_hub_pods.json['items'] | length }},
+          running={{ r_hub_pods.json['items'] | selectattr('status.phase', 'equalto', 'Running') | list | length }},
+          names={{ r_hub_pods.json['items'] | map(attribute='metadata.name') | list }}
+
     - name: Evaluate checks
       ansible.builtin.set_fact:
         storage_class_set: >-
