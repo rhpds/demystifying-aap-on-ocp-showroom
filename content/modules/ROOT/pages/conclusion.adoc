@@ -7,8 +7,8 @@ Congratulations on completing the *Demystifying Ansible Automation Platform on O
 Through these troubleshooting scenarios you have practiced diagnosing and resolving real-world issues across all major AAP components running on OpenShift:
 
 * *Scenario 1* — Identified a storage class misconfiguration preventing Automation Hub from starting, and understood why Hub requires ReadWriteMany (RWX) storage.
-* *Scenario 2* — Traced and resolved 2 independent Gateway and Controller failures: a missing database service and an incorrect admin password.
-* *Scenario 3* — Corrected an invalid node selector and oversized resource requests that prevented pods from being scheduled.
+* *Scenario 2* — Traced and resolved a Gateway failure: an incorrect admin password.
+* *Scenario 3* — Corrected an invalid node selector that prevented pods from being scheduled.
 * *Scenario 4* — Diagnosed an Execution Environment image pull failure caused by a missing container registry credential on a job template.
 * *Scenario 5* — Resolved 2 Hub synchronization failures caused by insufficient memory limits and undersized PVC storage.
 * *Scenario 6* — Restored the ALIA Lightspeed assistant by correcting a misconfigured LLM model in the chatbot secret.
