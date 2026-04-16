@@ -8,6 +8,7 @@ on:
       - 'runtime-automation/**'
       - 'ui-config.yml'
       - '.github/workflows/ftl-syntax-check.yml'
+      - '.ansible-lint'
   pull_request:
     paths:
       - 'runtime-automation/**'
