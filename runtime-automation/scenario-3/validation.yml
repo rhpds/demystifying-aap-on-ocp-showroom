@@ -56,26 +56,12 @@
             r_pg_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
           }}
 
-    - name: Set validation output
-      ansible.builtin.set_fact:
-        validation_output: |
-          Module 03: Database Node Selector
-          ==================================
-          {{ '[OK]' if node_selector_clear else '[X] ' }} AAP CR database.node_selector is cleared
-          {{ '[OK]' if postgres_running else '[X] ' }} Postgres pod Running (not stuck Pending)
-        validation_passed: "{{ node_selector_clear and postgres_running }}"
-
-    - name: Write failure details
-      ansible.builtin.copy:
-        content: "{{ validation_output }}"
-        dest: "{{ job_info_dir }}/validation_failure.out"
-        mode: '0644'
-      delegate_to: localhost
-      when:
-        - job_info_dir is defined
-        - not validation_passed | bool
-
-    - name: Fail if not passed
-      ansible.builtin.fail:
-        msg: "Complete the missing tasks and try again."
-      when: not validation_passed | bool
+    - name: Validate all tasks
+      validation_check:
+        check: "{{ node_selector_clear and postgres_running }}"
+        pass_msg: |
+          ✅ AAP CR database.node_selector is cleared
+          ✅ Postgres pod Running
+        error_msg: |
+          {{ '✅' if node_selector_clear else '❌' }} AAP CR database.node_selector is cleared
+          {{ '✅' if postgres_running else '❌' }} Postgres pod Running (not stuck Pending)

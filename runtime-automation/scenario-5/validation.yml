@@ -73,27 +73,14 @@
             r_hub_pods.json.items | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
           }}
 
-    - name: Set validation output
-      ansible.builtin.set_fact:
-        validation_output: |
-          Module 05: Hub File Storage Size
-          =================================
-          {{ '[OK]' if storage_size_ok else '[X] ' }} Hub file_storage_size >= 10Gi (was 25Mi)
-          {{ '[OK]' if pvc_bound else '[X] ' }} Hub PVC {{ aap_cr_name }}-hub-file-storage is Bound
-          {{ '[OK]' if hub_pods_running else '[X] ' }} Hub pods Running
-        validation_passed: "{{ storage_size_ok and pvc_bound and hub_pods_running }}"
-
-    - name: Write failure details
-      ansible.builtin.copy:
-        content: "{{ validation_output }}"
-        dest: "{{ job_info_dir }}/validation_failure.out"
-        mode: '0644'
-      delegate_to: localhost
-      when:
-        - job_info_dir is defined
-        - not validation_passed | bool
-
-    - name: Fail if not passed
-      ansible.builtin.fail:
-        msg: "Complete the missing tasks and try again."
-      when: not validation_passed | bool
+    - name: Validate all tasks
+      validation_check:
+        check: "{{ storage_size_ok and pvc_bound and hub_pods_running }}"
+        pass_msg: |
+          ✅ Hub file_storage_size >= 10Gi
+          ✅ Hub PVC {{ aap_cr_name }}-hub-file-storage is Bound
+          ✅ Hub pods Running
+        error_msg: |
+          {{ '✅' if storage_size_ok else '❌' }} Hub file_storage_size >= 10Gi (was 25Mi)
+          {{ '✅' if pvc_bound else '❌' }} Hub PVC {{ aap_cr_name }}-hub-file-storage is Bound
+          {{ '✅' if hub_pods_running else '❌' }} Hub pods Running
