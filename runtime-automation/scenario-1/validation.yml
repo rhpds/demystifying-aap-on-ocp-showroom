@@ -18,15 +18,15 @@
         current_namespace: "{{ r_ns.content | b64decode | trim }}"
         aap_cr_name: "{{ r_ns.content | b64decode | trim | regex_replace('-scenario-[0-9]+$', '') }}-aap"
 
-    - name: Get AAP CR
+    - name: Get AutomationHub CR
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/{{ current_namespace }}/ansibleautomationplatforms/{{ aap_cr_name }}"
+        url: "https://kubernetes.default.svc/apis/automationhub.ansible.com/v1beta1/namespaces/{{ current_namespace }}/automationhubs/{{ aap_cr_name }}-hub"
         method: GET
         headers:
           Authorization: "Bearer {{ _token }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_aap_cr
+      register: r_hub_cr
 
     - name: Get Hub file storage PVC
       ansible.builtin.uri:
@@ -52,10 +52,9 @@
       ansible.builtin.set_fact:
         storage_class_set: >-
           {{
-            r_aap_cr.status == 200 and
-            r_aap_cr.json.spec.hub is defined and
-            r_aap_cr.json.spec.hub.file_storage_storage_class is defined and
-            r_aap_cr.json.spec.hub.file_storage_storage_class | length > 0
+            r_hub_cr.status == 200 and
+            r_hub_cr.json.spec.file_storage_storage_class is defined and
+            r_hub_cr.json.spec.file_storage_storage_class == 'ocs-external-storagecluster-cephfs'
           }}
         pvc_bound: >-
           {{
