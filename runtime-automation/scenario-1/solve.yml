@@ -33,6 +33,20 @@
         validate_certs: false
         status_code: [200, 201]
 
+    - name: Patch AutomationHub CR directly to set file storage class
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/apis/automationhub.ansible.com/v1beta1/namespaces/{{ current_namespace }}/automationhubs/{{ aap_cr_name }}-hub"
+        method: PATCH
+        headers:
+          Authorization: "Bearer {{ _token }}"
+          Content-Type: "application/merge-patch+json"
+        body_format: json
+        body:
+          spec:
+            file_storage_storage_class: ocs-external-storagecluster-cephfs
+        validate_certs: false
+        status_code: [200, 201, 404]
+
     - name: Get Hub Operator manager pods
       ansible.builtin.uri:
         url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods?labelSelector=app.kubernetes.io%2Fname%3Dautomation-hub-operator"
