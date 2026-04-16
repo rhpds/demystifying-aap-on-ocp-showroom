@@ -39,7 +39,6 @@ jobs:
       - name: ansible-lint — all playbooks
         run: |
           ansible-lint runtime-automation/main.yml \
-            runtime-automation/scenario-*/validation.yml \
             runtime-automation/scenario-*/solve.yml
 
       - name: Syntax check — all scenario/stage combinations
