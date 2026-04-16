@@ -1,10 +1,10 @@
-= 💡 Solution: Scenario 3 - Node selector & resource issues
+= 💡 Solution: Scenario 3 - Node selector issue
 
-This page provides the detailed solutions for the issues presented in Scenario 3. Review these steps after you have attempted the diagnosis and resolution yourself.
+This page provides the detailed solutions for the issue presented in Scenario 3. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 
-== 🛑 Problem 1: Database pod scheduling failure
+== 🛑 Database pod scheduling failure
 
 === Diagnosis
 
@@ -39,39 +39,9 @@ spec:
 
 ---
 
-== 🛑 Problem 2: API pod resource exhaustion
-
-=== Diagnosis
-
-The *API* pods were failing due to oversized resource requests and limits defined in the CR. The requests exceeded the available node or cluster resources, preventing pod startup.
-
-=== 🛠️ Resolution: Reducing resource requirements
-
-The fix is to reduce the resource requirements defined in the API section of the CR to values that are manageable and realistic.
-
-==== 1. Modify the API resource requirements in the CR
-
-Still in the AAP CR *YAML* view, reduce the values in the Controller resource requirements:
-
-[source,yaml]
-----
-# Example snippet of the modified AAP CR
-spec:
-  controller:
-    resource_requirements:
-      requests:
-        cpu: 250m
-        memory: 1Gi
-      limits:
-        cpu: 1000m
-        memory: 2Gi
-----
-
----
-
 == ♻️ Final reconciliation
 
-After both CR modifications are applied, the Operator must reconcile the environment.
+After the CR modifications is applied, the Operator must reconcile the environment.
 
 In the *OpenShift Console*, navigate to *Workloads → Pods* and select your namespace.
 
