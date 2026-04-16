@@ -17,7 +17,7 @@ image::chat_icon.png[Reference of the ALIA chat icon, width=317, align="left", l
 
 == Your ALIA configuration
 
-The correct LLM connection details for your environment are:
+The LLM connection details for your environment are:
 
 [cols="1,2",options="header"]
 |===
