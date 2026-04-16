@@ -13,6 +13,30 @@
 * Diagnose 2 distinct issues.
 * Resolve both issues.
 
+[#credentials]
+== Your credentials
+
+Use the following credentials to log into AAP via the tab on the right:
+
+[cols="1,2",options="header"]
+|===
+| Field | Value
+| *Username* | admin
+| *Password* | {password}
+|===
+
+[#ocp-console]
+== OpenShift Console
+
+Use the following credentials to log into OpenShift via the tab on the right:
+
+[cols="1,2",options="header"]
+|===
+| Field | Value
+| *Username* | {user}
+| *Password* | {password}
+|===
+
 == Troubleshooting
 
 === Step 1: Run the Break Scenario job

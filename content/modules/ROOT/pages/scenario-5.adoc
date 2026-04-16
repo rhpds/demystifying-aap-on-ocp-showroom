@@ -13,6 +13,30 @@
 * Attempt to synchronize the built-in *Community* repository.
 * Diagnose and resolve the 2 underlying issues preventing successful synchronization.
 
+[#credentials]
+== Your credentials
+
+Use the following credentials to log into AAP via the tab on the right:
+
+[cols="1,2",options="header"]
+|===
+| Field | Value
+| *Username* | admin
+| *Password* | {password}
+|===
+
+[#ocp-console]
+== OpenShift Console
+
+Use the following credentials to log into OpenShift via the tab on the right:
+
+[cols="1,2",options="header"]
+|===
+| Field | Value
+| *Username* | {user}
+| *Password* | {password}
+|===
+
 == Troubleshooting
 
 === Step 1: Run the Break Scenario job
