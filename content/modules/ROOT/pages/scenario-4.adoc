@@ -67,7 +67,7 @@ Re-launch the previously failing job template and confirm it now runs successful
 
 == Hint
 
-The failure is in how the job template is configured, specifically something related to the Execution Environment or its associated credentials. The job output will give you a clear error message to work from.
+The failure is in how the job template is configured, specifically something related to the Execution Environment or its associated credentials. The job and pod logs will give you a clear error message to work from.
 
 == Check Your Work
 
