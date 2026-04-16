@@ -1,0 +1,6 @@
+---
+# validation_check is a module provided by the FTL runner (rhpds.ftl collection)
+# at runtime. It is not available in the CI lint environment, so we skip the
+# unknown-module rule to avoid false positives.
+skip_list:
+  - syntax-check[unknown-module]
