@@ -77,9 +77,8 @@
         bad_ee_count: >-
           {{
             r_job_templates.json.results | default([])
-            | selectattr('execution_environment', 'defined')
-            | selectattr('execution_environment.name', 'defined')
-            | selectattr('execution_environment.name', 'equalto', 'RH1-EE1')
+            | selectattr('summary_fields.execution_environment.name', 'defined')
+            | selectattr('summary_fields.execution_environment.name', 'equalto', 'RH1-EE1')
             | list | length
           }}
       when:
