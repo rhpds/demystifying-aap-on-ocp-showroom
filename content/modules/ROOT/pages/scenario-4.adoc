@@ -51,9 +51,9 @@ Review the job output to understand the error message.
 
 === Step 3: Inspect the failed job
 
-Click into the failed job run and review its output in detail. The error will indicate what is wrong with the Execution Environment or credentials configuration.
+Click into the failed job run and review its output in detail. The error will indicate a failure.
 
-You can also check the *OpenShift Console → Workloads → Pods* to find the automation job pod and review its logs.
+For greater detail, check the *OpenShift Console → Workloads → Pods* to find the automation job pod and review its logs.
 
 === Step 4: Fix the issue
 
@@ -67,7 +67,7 @@ Re-launch the previously failing job template and confirm it now runs successful
 
 == Hint
 
-The failure is in how the job template is configured, specifically something related to the Execution Environment or its associated credentials. The job output will give you a clear error message to work from.
+The failure is in how the job template is configured, specifically something related to the Execution Environment or its associated credentials. The job and pod logs will give you a clear error message to work from.
 
 == Check Your Work
 

@@ -55,7 +55,11 @@ Use the following credentials to log into OpenShift via the tab on the right:
 
 === Step 1: Run the Break Scenario job
 
-Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template. Wait for it to complete before proceeding.
+Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template. 
+
+The job template you just ran is configuring the Lightspeed chat bot, it takes a few minutes to deploy. You can watch the `lightspeed-operator-manager` pod logs to see when it is ready.
+
+Please wait for it to complete before proceeding.
 
 === Step 2: Confirm the ALIA icon is missing
 
@@ -66,6 +70,8 @@ Log into AAP and confirm the chat icon is not visible in the interface.
 Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by your namespace.
 
 Identify the `lightspeed-api` and `chatbot` pods and review their *Logs* tabs for connection errors related to the LLM backend.
+
+Note: If you do not see `lightspeed-api` or `lightspeed-chatbot` pods, please verify that the `lightspeed-operator-manager` pod has finished deployment
 
 === Step 4: Identify the misconfiguration
 
