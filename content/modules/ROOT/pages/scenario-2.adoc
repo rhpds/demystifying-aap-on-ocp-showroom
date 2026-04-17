@@ -68,3 +68,10 @@ Confirm all pods are running and ready, and that you can successfully log into t
 == Hint
 
 There is 1 issue. Focus on discovering *what* is wrong rather than knowing the fix upfront; check pod logs and service configurations. Once you have identified an issue, check the solution page to apply the fix.
+
+== Check Your Work
+
+++++
+<div class="validate-button-placeholder" data-module="scenario-2"></div>
+<div class="solve-button-placeholder" data-module="scenario-2"></div>
+++++
