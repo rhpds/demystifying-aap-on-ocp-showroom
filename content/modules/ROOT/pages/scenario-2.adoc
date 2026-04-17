@@ -1,9 +1,9 @@
-= Scenario 2: Gateway & Controller issues
+= Scenario 2: Gateway issues
 
 [cols="3",options="header"]
 |===
 | Difficulty | Components | Break Type
-| Hard | Automation Controller, Gateway | Two distinct issues
+| Hard | Automation Gateway
 |===
 
 == Objectives

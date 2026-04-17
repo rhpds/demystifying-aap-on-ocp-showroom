@@ -1,4 +1,4 @@
-= 💡 Solution: Scenario 2 - Gateway & Controller issues
+= 💡 Solution: Scenario 2 - Gateway login issues
 
 This page provides the detailed solutions for the issues presented in Scenario 2. Review these steps after you have attempted the diagnosis and resolution yourself.
 
