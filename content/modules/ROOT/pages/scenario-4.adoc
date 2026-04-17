@@ -53,7 +53,7 @@ Review the job output to understand the error message.
 
 Click into the failed job run and review its output in detail. The error will indicate a failure.
 
-For greater detail, check the *OpenShift Console → Workloads → Pods* to find the automation job pod and review its logs.
+For greater detail, check the *OpenShift Console → Workloads → Pods* to find the automation job pod and review its logs and events.
 
 === Step 4: Fix the issue
 

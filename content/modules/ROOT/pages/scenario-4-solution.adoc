@@ -18,11 +18,11 @@ The solution is to modify the failing job template to reference an Execution Env
 
 ==== 1. Identify and edit the failing job template
 
-In the *AAP UI*, navigate to *Automation Execution → Templates*. Select the template that failed execution.
+In the *AAP UI*, navigate to *Automation Execution → Templates*. Select the template that failed execution (SUMMIT-T4).
 
 ==== 2. Change the Execution Environment
 
-Edit the job template configuration and switch the *Execution Environment* field to match the image being successfully used by the other job templates.
+Edit the job template configuration and switch the *Execution Environment* field to match the image being successfully used by the other job templates (Default Execution Environment).
 
 [NOTE]
 ====
