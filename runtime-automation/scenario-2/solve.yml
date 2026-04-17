@@ -73,6 +73,52 @@
         validate_certs: false
         status_code: [200, 201, 409]
 
+    - name: Get admin password from secret
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/secrets/{{ aap_cr_name }}-admin-password"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200]
+      register: r_admin_secret
+
+    - name: Set admin password fact
+      ansible.builtin.set_fact:
+        admin_password: "{{ r_admin_secret.json.data.password | b64decode }}"
+
+    - name: Get gateway pod name
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods?labelSelector=app.kubernetes.io%2Fcomponent%3Daap-gateway"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200]
+      register: r_gateway_pods
+      until: >-
+        r_gateway_pods.json['items'] | selectattr('status.phase', 'equalto', 'Running') | list | length > 0
+      retries: 20
+      delay: 15
+
+    - name: Set gateway pod name fact
+      ansible.builtin.set_fact:
+        gateway_pod: >-
+          {{
+            r_gateway_pods.json['items']
+            | selectattr('status.phase', 'equalto', 'Running')
+            | map(attribute='metadata.name')
+            | first
+          }}
+
+    - name: Reset admin password in gateway pod
+      ansible.builtin.command:
+        cmd: >
+          oc exec -n {{ current_namespace }} {{ gateway_pod }}
+          -- aap-gateway-manage update_password --username admin --password {{ admin_password }}
+      register: r_password_reset
+      changed_when: true
+
     - name: Show completion message
       ansible.builtin.copy:
         content: |
@@ -82,9 +128,7 @@
           Fixed:
           - Scaled aap-gateway-operator-controller-manager back to 1 replica
           - Recreated {{ aap_cr_name }}-postgres-15 Service
-
-          Note: The break also changed the admin password. If you cannot log in
-          to AAP, ask your instructor for the temporary credentials.
+          - Reset admin password to value from {{ aap_cr_name }}-admin-password secret
 
           Wait 2-3 minutes for the operator to reconcile, then click Validate.
         dest: "{{ job_info_dir }}/validation_failure.out"
