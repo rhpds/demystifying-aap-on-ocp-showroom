@@ -88,9 +88,8 @@
       loop: >-
         {{
           r_job_templates.json.results
-          | selectattr('execution_environment', 'defined')
-          | selectattr('execution_environment.name', 'defined')
-          | selectattr('execution_environment.name', 'equalto', 'RH1-EE1')
+          | selectattr('summary_fields.execution_environment.name', 'defined')
+          | selectattr('summary_fields.execution_environment.name', 'equalto', 'RH1-EE1')
           | list
         }}
       when: default_ee_id is defined
