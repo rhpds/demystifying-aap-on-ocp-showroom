@@ -6,6 +6,7 @@
 
   vars:
     _token: "{{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+    _pg_label: "app.kubernetes.io%2Fcomponent%3Ddatabase%2Capp.kubernetes.io%2Fname%3Dpostgres-15"
 
   tasks:
     - name: Read namespace from service account
@@ -33,6 +34,26 @@
         validate_certs: false
         status_code: [200, 201]
 
+    - name: Get stuck postgres pod
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods?labelSelector={{ _pg_label }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200]
+      register: r_pg_pods
+
+    - name: Delete stuck postgres pod so it gets rescheduled
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods/{{ item.metadata.name }}"
+        method: DELETE
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200, 202, 404]
+      loop: "{{ r_pg_pods.json['items'] | default([]) }}"
+
     - name: Show completion message
       ansible.builtin.copy:
         content: |
@@ -41,9 +62,9 @@
 
           Fixed:
           - Patched AAP CR database.node_selector to null
+          - Deleted stuck postgres pod so it reschedules on a schedulable node
 
-          The operator will reschedule the postgres pod on a schedulable node.
-          Wait 2-3 minutes, then click Validate.
+          Wait 2-3 minutes for postgres to restart, then click Validate.
         dest: "{{ job_info_dir }}/validation_failure.out"
         mode: '0644'
       delegate_to: localhost
