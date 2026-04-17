@@ -41,7 +41,7 @@ spec:
 
 == ♻️ Final reconciliation
 
-After the CR modifications is applied, the Operator must reconcile the environment.
+After the CR modification is applied, the Operator must reconcile the environment.
 
 In the *OpenShift Console*, navigate to *Workloads → Pods* and select your namespace.
 
