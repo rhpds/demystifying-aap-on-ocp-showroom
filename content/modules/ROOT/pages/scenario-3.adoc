@@ -1,17 +1,17 @@
-= Scenario 3: Node selector & resource issues
+= Scenario 3: Node selector issue
 
 [cols="3",options="header"]
 |===
 | Difficulty | Components | Break Type
-| Easy / Medium | Gateway | Two distinct issues
+| Easy / Medium | Gateway | One issue
 |===
 
 == Objectives
 
 * Log in to the *AAP Gateway UI*.
 * Observe multiple core components failing to deploy or stabilize.
-* Diagnose 2 distinct issues.
-* Resolve both issues.
+* Diagnose the issue.
+* Resolve the issue.
 
 [#credentials]
 == Your credentials
@@ -61,7 +61,7 @@ Confirm all pods are running and ready, then successfully log into the AAP UI.
 
 == Hint
 
-There are 2 issues. Try to identify both before checking the solution. Use *Describe* on the failing pods in the OpenShift Console; the events section will tell you exactly why the scheduler cannot place them.
+There is one issue. Try to identify the issue before checking the solution. Use *Logs* section on the failing pods in the OpenShift Console; the events section may tell you why the scheduler cannot place them.
 
 == Check Your Work
 
