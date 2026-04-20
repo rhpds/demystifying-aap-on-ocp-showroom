@@ -1,6 +1,6 @@
 = 💡 Solution: Scenario 3 - Node selector issue
 
-This page provides the detailed solutions for the issue presented in Scenario 3. Review these steps after you have attempted the diagnosis and resolution yourself.
+This page provides the detailed solution for the issue presented in Scenario 3. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 

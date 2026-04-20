@@ -49,11 +49,11 @@ Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by you
 
 Identify pods that are not reaching a `Running` state. Click on each failing pod and review the *Events* tab; the scheduler messages will point you toward the root cause.
 
-=== Step 3: Fix the issues
+=== Step 3: Fix the issue
 
-Once you have identified both issues, apply the fixes through the OpenShift Console.
+Once you have identified the issue, apply the fix through the OpenShift Console.
 
-Refer to the solution page if needed: xref:scenario-3-solution.adoc[Solution: Node Selector & Resource Issues]
+Refer to the solution page if needed: xref:scenario-3-solution.adoc[Solution: Node selector issue]
 
 === Step 4: Verify
 
