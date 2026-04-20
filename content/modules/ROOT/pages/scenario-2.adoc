@@ -53,8 +53,6 @@ Open the *OpenShift Console* and navigate to *Workloads → Pods*. Filter by you
 
 Identify any failing pods and click through to review their *Logs* and *Events* tabs for error messages.
 
-Navigate to *Networking → Services* and check for any missing or misconfigured services.
-
 === Step 4: Fix the issue
 
 Once you have identified the issue, apply the fix.

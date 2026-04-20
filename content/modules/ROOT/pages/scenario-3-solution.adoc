@@ -1,6 +1,6 @@
 = 💡 Solution: Scenario 3 - Node selector issue
 
-This page provides the detailed solutions for the issue presented in Scenario 3. Review these steps after you have attempted the diagnosis and resolution yourself.
+This page provides the detailed solution for the issue presented in Scenario 3. Review these steps after you have attempted the diagnosis and resolution yourself.
 
 ---
 
@@ -45,9 +45,9 @@ After the CR modification is applied, the Operator must reconcile the environmen
 
 In the *OpenShift Console*, navigate to *Workloads → Pods* and select your namespace.
 
-Find the database pod (`{user}-aap-postgres-15-0`), click the three-dot menu on the right, and select *Delete Pod*.
-
 Then find the Gateway Operator manager pod (`aap-gateway-operator-controller-manager-...`), click the three-dot menu, and select *Delete Pod*.
+
+Find the database pod (`{user}-aap-postgres-15-0`), click the three-dot menu on the right, and select *Delete Pod*.
 
 Wait a minute or two to allow the services to attempt to reconnect to the database. Delete any other pods that are in an errored state.
 
