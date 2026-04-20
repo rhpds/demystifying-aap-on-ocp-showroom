@@ -1,5 +1,5 @@
 ---
-- name: Validate Module 05 — Hub File Storage Size
+- name: Validate Module 05 — Hub Content Resource Limits
   hosts: localhost
   connection: local
   gather_facts: false
@@ -18,15 +18,15 @@
         current_namespace: "{{ r_ns.content | b64decode | trim }}"
         aap_cr_name: "{{ r_ns.content | b64decode | trim | regex_replace('-scenario-[0-9]+$', '') }}-aap"
 
-    - name: Get AAP CR
+    - name: Get AutomationHub CR
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/{{ current_namespace }}/ansibleautomationplatforms/{{ aap_cr_name }}"
+        url: "https://kubernetes.default.svc/apis/automationhub.ansible.com/v1beta1/namespaces/{{ current_namespace }}/automationhubs/{{ aap_cr_name }}-hub"
         method: GET
         headers:
           Authorization: "Bearer {{ _token }}"
         validate_certs: false
         status_code: [200, 404]
-      register: r_aap_cr
+      register: r_hub_cr
 
     - name: Get Hub file storage PVC
       ansible.builtin.uri:
@@ -38,9 +38,9 @@
         status_code: [200, 404]
       register: r_pvc
 
-    - name: Get Hub content pods
+    - name: Get Hub pods
       ansible.builtin.uri:
-        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods?labelSelector=app.kubernetes.io%2Fpart-of%3Dautomationhub"
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/pods?labelSelector=app.kubernetes.io%2Fname%3Dautomation-hub"
         method: GET
         headers:
           Authorization: "Bearer {{ _token }}"
@@ -48,20 +48,23 @@
         status_code: [200, 404]
       register: r_hub_pods
 
-    - name: Parse hub file_storage_size from CR (convert to Mi for comparison)
+    - name: Parse content memory limit from AutomationHub CR
       ansible.builtin.set_fact:
-        hub_storage_size_mi: >-
+        content_mem_limit_mi: >-
           {{
-            r_aap_cr.json.spec.hub.file_storage_size | default('0Mi')
+            r_hub_cr.json.spec.content.resource_requirements.limits.memory
+            | default('0Mi')
             | regex_replace('Gi$', '000')
             | regex_replace('Mi$', '')
             | int
           }}
-      when: r_aap_cr.status == 200 and r_aap_cr.json.spec.hub is defined
+      when:
+        - r_hub_cr.status == 200
+        - r_hub_cr.json.spec.content is defined
 
     - name: Evaluate checks
       ansible.builtin.set_fact:
-        storage_size_ok: "{{ (hub_storage_size_mi | default(0) | int) >= 1000 }}"
+        content_memory_ok: "{{ (content_mem_limit_mi | default(0) | int) >= 2000 }}"
         pvc_bound: >-
           {{
             r_pvc.status == 200 and
@@ -75,12 +78,12 @@
 
     - name: Validate all tasks
       validation_check:
-        check: "{{ storage_size_ok and pvc_bound and hub_pods_running }}"
+        check: "{{ content_memory_ok and pvc_bound and hub_pods_running }}"
         pass_msg: |
-          ✅ Hub file_storage_size >= 10Gi
+          ✅ Hub content memory limit is adequate (>= 2Gi)
           ✅ Hub PVC {{ aap_cr_name }}-hub-file-storage is Bound
           ✅ Hub pods Running
         error_msg: |
-          {{ '✅' if storage_size_ok else '❌' }} Hub file_storage_size >= 10Gi (was 25Mi)
+          {{ '✅' if content_memory_ok else '❌' }} Hub content memory limit is adequate
           {{ '✅' if pvc_bound else '❌' }} Hub PVC {{ aap_cr_name }}-hub-file-storage is Bound
           {{ '✅' if hub_pods_running else '❌' }} Hub pods Running
