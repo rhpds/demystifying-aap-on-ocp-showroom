@@ -28,6 +28,16 @@
         status_code: [200, 404]
       register: r_chatbot_secret
 
+    - name: Get AAP CR
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/{{ current_namespace }}/ansibleautomationplatforms/{{ aap_cr_name }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200, 404]
+      register: r_aap_cr
+
     - name: Decode chatbot_model from secret
       ansible.builtin.set_fact:
         chatbot_model: "{{ r_chatbot_secret.json.data.chatbot_model | b64decode }}"
@@ -37,13 +47,23 @@
       ansible.builtin.set_fact:
         secret_exists: "{{ r_chatbot_secret.status == 200 }}"
         correct_model: "{{ (chatbot_model | default('')) == 'granite-3-2-8b-instruct' }}"
+        lightspeed_enabled: >-
+          {{
+            r_aap_cr.status == 200 and
+            (
+              r_aap_cr.json.spec.lightspeed is not defined or
+              r_aap_cr.json.spec.lightspeed.disabled | default(false) == false
+            )
+          }}
 
     - name: Validate all tasks
       validation_check:
-        check: "{{ secret_exists and correct_model }}"
+        check: "{{ secret_exists and correct_model and lightspeed_enabled }}"
         pass_msg: |
           ✅ chatbot-configuration-secret exists
           ✅ chatbot_model = granite-3-2-8b-instruct
+          ✅ Lightspeed is enabled in AAP CR
         error_msg: |
           {{ '✅' if secret_exists else '❌' }} chatbot-configuration-secret exists
           {{ '✅' if correct_model else '❌' }} chatbot_model = granite-3-2-8b-instruct (got: {{ chatbot_model | default('not found') }})
+          {{ '✅' if lightspeed_enabled else '❌' }} Lightspeed is enabled in AAP CR
