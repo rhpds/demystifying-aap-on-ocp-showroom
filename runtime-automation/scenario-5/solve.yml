@@ -1,5 +1,5 @@
 ---
-- name: Solve Module 05 — Hub Content Resource Limits
+- name: Solve Module 05 — Hub File Storage Size
   hosts: localhost
   connection: local
   gather_facts: false
@@ -18,7 +18,7 @@
         current_namespace: "{{ r_ns.content | b64decode | trim }}"
         aap_cr_name: "{{ r_ns.content | b64decode | trim | regex_replace('-scenario-[0-9]+$', '') }}-aap"
 
-    - name: Patch AutomationHub CR to increase content resource limits
+    - name: Patch AutomationHub CR to increase file storage size
       ansible.builtin.uri:
         url: "https://kubernetes.default.svc/apis/automationhub.ansible.com/v1beta1/namespaces/{{ current_namespace }}/automationhubs/{{ aap_cr_name }}-hub"
         method: PATCH
@@ -28,16 +28,18 @@
         body_format: json
         body:
           spec:
-            content:
-              resource_requirements:
-                limits:
-                  cpu: 1000m
-                  memory: 8Gi
-                requests:
-                  cpu: 100m
-                  memory: 200Mi
+            file_storage_size: "10Gi"
         validate_certs: false
         status_code: [200, 201]
+
+    - name: Delete undersized file-storage PVC so operator recreates it
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/persistentvolumeclaims/{{ aap_cr_name }}-hub-file-storage"
+        method: DELETE
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200, 202, 404]
 
     - name: Show completion message
       ansible.builtin.copy:
@@ -46,11 +48,10 @@
           [OK] Module 05 solved
 
           Fixed:
-          - Patched AutomationHub CR content memory limit from 800Mi to 8Gi
+          - Patched AutomationHub CR file_storage_size from 25Mi to 10Gi
+          - Deleted undersized PVC so operator recreates it with new size
 
-          The operator will restart Hub content pods with the new limits.
-          Wait 2-3 minutes, then try syncing the Community repository.
-          Click Validate to confirm.
+          Wait 3-5 minutes for Hub pods to restart, then click Validate.
         dest: "{{ job_info_dir }}/validation_failure.out"
         mode: '0644'
       delegate_to: localhost
