@@ -1,5 +1,5 @@
 ---
-- name: Validate Module 05 — Hub Content Resource Limits
+- name: Validate Module 05 — Hub File Storage Size
   hosts: localhost
   connection: local
   gather_facts: false
@@ -28,28 +28,26 @@
         status_code: [200, 404]
       register: r_hub_cr
 
-    - name: Parse content memory limit from AutomationHub CR
+    - name: Parse file storage size from AutomationHub CR
       ansible.builtin.set_fact:
-        content_mem_limit_mi: >-
+        file_storage_mi: >-
           {{
-            r_hub_cr.json.spec.content.resource_requirements.limits.memory
+            r_hub_cr.json.spec.file_storage_size
             | default('0Mi')
             | regex_replace('Gi$', '000')
             | regex_replace('Mi$', '')
             | int
           }}
-      when:
-        - r_hub_cr.status == 200
-        - r_hub_cr.json.spec.content is defined
+      when: r_hub_cr.status == 200
 
     - name: Evaluate checks
       ansible.builtin.set_fact:
-        content_memory_ok: "{{ (content_mem_limit_mi | default(0) | int) >= 2000 }}"
+        file_storage_ok: "{{ (file_storage_mi | default(0) | int) >= 1000 }}"
 
     - name: Validate all tasks
       validation_check:
-        check: "{{ content_memory_ok }}"
+        check: "{{ file_storage_ok }}"
         pass_msg: |
-          ✅ Hub content memory limit is adequate (>= 2Gi)
+          ✅ Hub file storage size is adequate (>= 1Gi)
         error_msg: |
-          {{ '✅' if content_memory_ok else '❌' }} Hub content memory limit is adequate (>= 2Gi)
+          {{ '✅' if file_storage_ok else '❌' }} Hub file storage size is adequate (>= 1Gi)
