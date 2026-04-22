@@ -29,7 +29,7 @@
         body:
           spec:
             hub:
-              file_storage_storage_class: ocs-external-storagecluster-cephfs
+              file_storage_storage_class: ocs-storagecluster-cephfs
         validate_certs: false
         status_code: [200, 201]
 
@@ -43,7 +43,7 @@
         body_format: json
         body:
           spec:
-            file_storage_storage_class: ocs-external-storagecluster-cephfs
+            file_storage_storage_class: ocs-storagecluster-cephfs
         validate_certs: false
         status_code: [200, 201, 404]
 
@@ -97,7 +97,7 @@
           [OK] Module 01 solved
 
           Fixed:
-          - Patched Hub file_storage_storage_class to ocs-external-storagecluster-cephfs
+          - Patched Hub file_storage_storage_class to ocs-storagecluster-cephfs
           - Restarted operator so it reads updated CR before PVC is recreated
           - Deleted old PVC so operator recreates it with RWX/CephFS
 

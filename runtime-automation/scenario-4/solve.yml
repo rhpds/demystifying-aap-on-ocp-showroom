@@ -44,7 +44,7 @@
 
     - name: Set gateway URL
       ansible.builtin.set_fact:
-        gateway_url: "{{ r_aap_cr.json.status.URL }}"
+        gateway_url: "{{ r_aap_cr.json.status.URL | default('') }}"
 
     - name: Get default execution environment from Controller
       ansible.builtin.uri:

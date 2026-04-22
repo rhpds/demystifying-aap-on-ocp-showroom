@@ -112,12 +112,12 @@
           }}
 
     - name: Reset admin password in gateway pod
-      ansible.builtin.command:
-        cmd: >
-          oc exec -n {{ current_namespace }} {{ gateway_pod }}
-          -- aap-gateway-manage update_password --username admin --password {{ admin_password }}
+      kubernetes.core.k8s_exec:
+        kubeconfig: "{{ k8s_kubeconfig | default(omit) }}"
+        namespace: "{{ current_namespace }}"
+        pod: "{{ gateway_pod }}"
+        command: "aap-gateway-manage update_password --username admin --password {{ admin_password }}"
       register: r_password_reset
-      changed_when: true
 
     - name: Show completion message
       ansible.builtin.copy:
