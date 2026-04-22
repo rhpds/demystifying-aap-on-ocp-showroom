@@ -116,6 +116,7 @@
         kubeconfig: "{{ k8s_kubeconfig | default(omit) }}"
         namespace: "{{ current_namespace }}"
         pod: "{{ gateway_pod }}"
+        container: api
         command: "/opt/aap-gateway/venv/bin/aap-gateway-manage update_password --username admin --password {{ admin_password }}"
       register: r_password_reset
 
