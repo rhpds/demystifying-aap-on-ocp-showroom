@@ -9,3 +9,8 @@ exclude_paths:
   - runtime-automation/scenario-4/validation.yml
   - runtime-automation/scenario-5/validation.yml
   - runtime-automation/scenario-6/validation.yml
+
+# kubernetes.core.k8s_exec is available in the FTL runner image at runtime
+# but is not installed in CI — mock it so ansible-lint can resolve it.
+mock_modules:
+  - kubernetes.core.k8s_exec
