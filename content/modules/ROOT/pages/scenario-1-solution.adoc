@@ -33,7 +33,7 @@ In the *OpenShift Console*:
 # Example snippet of the modified AAP CR
 spec:
   hub:
-    file_storage_storage_class: ocs-external-storagecluster-cephfs
+    file_storage_storage_class: ocs-storagecluster-cephfs
 ----
 
 ==== 2. Delete the Automation Hub CR
