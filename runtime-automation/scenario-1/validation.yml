@@ -54,7 +54,7 @@
           {{
             r_hub_cr.status == 200 and
             r_hub_cr.json.spec.file_storage_storage_class is defined and
-            r_hub_cr.json.spec.file_storage_storage_class == 'ocs-external-storagecluster-cephfs'
+            r_hub_cr.json.spec.file_storage_storage_class == 'ocs-storagecluster-cephfs'
           }}
         pvc_bound: >-
           {{
