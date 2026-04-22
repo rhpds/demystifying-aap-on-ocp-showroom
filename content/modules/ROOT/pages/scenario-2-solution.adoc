@@ -30,7 +30,8 @@ aap-gateway-manage update_password --username admin --password <password-from-se
 .Expected output
 [source,bash]
 ----
-Password updated successfully for user admin
+changed password from '$encrypted$' to '$encrypted$'
+Password updated
 ----
 
 [NOTE]
