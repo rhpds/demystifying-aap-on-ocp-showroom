@@ -18,6 +18,21 @@
         current_namespace: "{{ r_ns.content | b64decode | trim }}"
         aap_cr_name: "{{ r_ns.content | b64decode | trim | regex_replace('-scenario-[0-9]+$', '') }}-aap"
 
+    - name: Patch AAP CR to increase hub file storage size
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/apis/aap.ansible.com/v1alpha1/namespaces/{{ current_namespace }}/ansibleautomationplatforms/{{ aap_cr_name }}"
+        method: PATCH
+        headers:
+          Authorization: "Bearer {{ _token }}"
+          Content-Type: "application/merge-patch+json"
+        body_format: json
+        body:
+          spec:
+            hub:
+              file_storage_size: "10Gi"
+        validate_certs: false
+        status_code: [200, 201]
+
     - name: Patch AutomationHub CR to increase file storage size
       ansible.builtin.uri:
         url: "https://kubernetes.default.svc/apis/automationhub.ansible.com/v1beta1/namespaces/{{ current_namespace }}/automationhubs/{{ aap_cr_name }}-hub"
@@ -41,6 +56,19 @@
         validate_certs: false
         status_code: [200, 202, 404]
 
+    - name: Wait for operator to recreate PVC at correct size
+      ansible.builtin.uri:
+        url: "https://kubernetes.default.svc/api/v1/namespaces/{{ current_namespace }}/persistentvolumeclaims/{{ aap_cr_name }}-hub-file-storage"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ _token }}"
+        validate_certs: false
+        status_code: [200, 404]
+      register: r_pvc
+      until: r_pvc.status == 200 and r_pvc.json.status.phase == 'Bound'
+      retries: 30
+      delay: 10
+
     - name: Show completion message
       ansible.builtin.copy:
         content: |
@@ -48,8 +76,9 @@
           [OK] Module 05 solved
 
           Fixed:
-          - Patched AutomationHub CR file_storage_size from 25Mi to 10Gi
-          - Deleted undersized PVC so operator recreates it with new size
+          - Patched AAP CR hub.file_storage_size to 10Gi
+          - Patched AutomationHub CR file_storage_size to 10Gi
+          - Deleted undersized PVC and waited for operator to recreate it
 
           Wait 3-5 minutes for Hub pods to restart, then click Validate.
         dest: "{{ job_info_dir }}/validation_failure.out"
