@@ -65,7 +65,7 @@ After applying the fixes, attempt to sync the *Community* repository again. A su
 
 == Hint
 
-There are 2 issues. The first error message may not immediately reveal the root cause; search for the specific error text to find relevant Red Hat Knowledge Base articles. Once the first issue is resolved, the second one will become apparent from the next sync attempt.
+There are 2 issues. The first issue is described in the task output from the repository sync. The second error message may not immediately reveal the root cause; search for the specific error text to find relevant Red Hat Knowledge Base articles.
 
 == Check Your Work
 
