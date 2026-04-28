@@ -1,6 +1,6 @@
-= 💡 Solution: Scenario 6 - ALIA Lightspeed issues
+= 💡 Solution: Scenario 4 - ALIA Lightspeed issues
 
-This page provides the detailed solution for the issue presented in Scenario 6, which involves an incorrect Large Language Model (LLM) configuration for Ansible Lightspeed Intelligent Assistant (ALIA).
+This page provides the detailed solution for the issue presented in Scenario 4, which involves an incorrect Large Language Model (LLM) configuration for Ansible Lightspeed Intelligent Assistant (ALIA).
 
 ---
 

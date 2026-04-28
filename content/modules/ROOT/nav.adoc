@@ -11,13 +11,7 @@
 * xref:scenario-3.adoc[Scenario 3: Node selector & resource issues]
 ** xref:scenario-3-solution.adoc[Solution: Node selector & resource issues]
 
-* xref:scenario-4.adoc[Scenario 4: Execution Environment credentials]
-** xref:scenario-4-solution.adoc[Solution: Execution Environment credentials]
-
-* xref:scenario-5.adoc[Scenario 5: Automation Hub sync issues]
-** xref:scenario-5-solution.adoc[Solution: Automation Hub sync issues]
-
-* xref:scenario-6.adoc[Scenario 6: ALIA Lightspeed issues]
+* xref:scenario-6.adoc[Scenario 4: ALIA Lightspeed issues]
 ** xref:scenario-6-solution.adoc[Solution: ALIA Lightspeed issues]
 
 * xref:conclusion.adoc[Conclusion]
