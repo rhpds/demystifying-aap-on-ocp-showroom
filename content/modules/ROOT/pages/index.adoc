@@ -56,16 +56,14 @@ Each scenario presents a broken AAP deployment; your goal is to identify the roo
 | 1 | Automation Hub | Hub fails to start due to a storage configuration issue
 | 2 | Automation Controller + Hub | Wrong admin password / Database service missing
 | 3 | Automation Controller + Hub | Wrong node selector / High resource requests
-| 4 | Automation Controller + Hub | Job template with Execution Environment using wrong credentials
-| 5 | Automation Hub | Hub community sync limits / Hub sync storage issue
-| 6 | Ansible Lightspeed (ALIA) | ALIA chat assistant not responding due to wrong model configuration
+| 4 | Ansible Lightspeed (ALIA) | ALIA chat assistant not responding due to wrong model configuration
 |===
 
 [#how-it-works]
 == How the lab works
 
 . *Your environment is already deployed.* AAP is running on OpenShift in a namespace dedicated to you.
-. *You introduce the break.* For scenarios 2-6, log into AAP and run the *Break Scenario* job template in the Controller. This applies the failure for your scenario. For scenario 1, the environment is already broken (no action needed).
+. *You introduce the break.* For scenarios 2-4, log into AAP and run the *Break Scenario* job template in the Controller. This applies the failure for your scenario. For scenario 1, the environment is already broken (no action needed).
 . *You investigate and fix the issue.* Use the AAP UI and OpenShift Console to diagnose the problem and restore full functionality.
 . *Refer to the solution page* if you need guidance after attempting the diagnosis yourself.
 

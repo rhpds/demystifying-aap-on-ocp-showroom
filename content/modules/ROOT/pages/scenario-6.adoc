@@ -1,4 +1,4 @@
-= Scenario 6: ALIA — Ansible Lightspeed issues
+= Scenario 4: ALIA — Ansible Lightspeed issues
 
 [cols="3",options="header"]
 |===
