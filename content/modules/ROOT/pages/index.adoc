@@ -11,10 +11,24 @@ In this lab you will troubleshoot real-world Ansible Automation Platform deploym
 [#environment]
 == Your environment
 
-Your environment consists of a dedicated AAP instance already deployed on OpenShift. There is no bastion host. All interaction happens through:
+Your environment consists of 4 dedicated AAP instances already deployed on OpenShift — one per scenario. There is no bastion host. All interaction happens through:
 
-* The *Ansible Automation Platform* tab on the right side of this page.
+* The *AAP tab for your current scenario* on the right side of this page.
 * The *OpenShift Console* accessible via the top navigation.
+
+[WARNING]
+====
+Your showroom has *4 separate AAP tabs*, one per scenario. Always make sure you are working in the correct tab before logging in or running job templates. Using the wrong AAP instance will lead to unexpected results.
+
+[cols="1,2",options="header"]
+|===
+| Tab | Scenario
+| *AAP - Scenario 1 (Hub)* | Scenario 1: Automation Hub storage issue
+| *AAP - Scenario 2 (Gateway)* | Scenario 2: Gateway issues
+| *AAP - Scenario 3 (Node Selector)* | Scenario 3: Node selector issue
+| *AAP - Scenario 4 (ALIA)* | Scenario 4: ALIA — Ansible Lightspeed issues
+|===
+====
 
 [#credentials]
 == Your credentials
