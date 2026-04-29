@@ -15,6 +15,11 @@ image::chat_icon.png[Reference of the ALIA chat icon, width=317, align="left", l
 * Diagnose the underlying issue preventing the ALIA UI component from activating.
 * Resolve the issue to restore the assistant.
 
+[IMPORTANT]
+====
+Use the *AAP - Scenario 4 (ALIA)* tab in the right-hand panel for this scenario.
+====
+
 == Your ALIA configuration
 
 The LLM connection details for your environment are:
@@ -55,7 +60,7 @@ Use the following credentials to log into OpenShift via the tab on the right:
 
 === Step 1: Run the Break Scenario job
 
-Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template. 
+Log into AAP using the *AAP - Scenario 4 (ALIA)* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template.
 
 The job template you just ran is configuring the Lightspeed chat bot, it takes a few minutes to deploy. You can watch the `lightspeed-operator-manager` pod logs to see when it is ready.
 

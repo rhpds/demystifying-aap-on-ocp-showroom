@@ -13,6 +13,11 @@
 * Diagnose 1 issue.
 * Resolve the issue to restore full functionality.
 
+[IMPORTANT]
+====
+Use the *AAP - Scenario 2 (Gateway)* tab in the right-hand panel for this scenario.
+====
+
 [#credentials]
 == Your credentials
 
@@ -41,11 +46,11 @@ Use the following credentials to log into OpenShift via the tab on the right:
 
 === Step 1: Run the Break Scenario job
 
-Log into AAP using the *Ansible Automation Platform* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template. Wait for it to complete before proceeding.
+Log into AAP using the *AAP - Scenario 2 (Gateway)* tab. Navigate to *Automation Execution → Templates* and launch the *Break Scenario* job template. Wait for it to complete before proceeding.
 
 === Step 2: Attempt to log in to AAP
 
-Use the *Ansible Automation Platform* tab on the right. Try to log in with your credentials. Note any errors or unexpected behavior.
+Use the *AAP - Scenario 2 (Gateway)* tab on the right. Try to log in with your credentials. Note any errors or unexpected behavior.
 
 === Step 3: Inspect pod logs
 
